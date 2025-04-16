@@ -60,7 +60,7 @@
                     <label for="date" class="form-label">Date</label>
                     <select class="form-select" id="date" name="date">
                         <option value="">All Dates</option>
-                        {% for date in showtimes|dictsort:"datetime"|dictsortreversed:"datetime"|unique:"datetime.date" %}
+                        {% for date in showtimes|dictsort:"datetime"|dictsortreversed:"datetime"%}
                         <option value="{{ date.datetime|date:'Y-m-d' }}">{{ date.datetime|date:"F j, Y" }}</option>
                         {% endfor %}
                     </select>

@@ -1,0 +1,106 @@
+<!-- templates/movies/movie_list.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | West Texas Tickets{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ title }}</h1>
+        <div class="filters">
+            <form method="GET" class="d-flex">
+                <select name="theater" class="form-select me-2">
+                    <option value="">All Theaters</option>
+                    {% for theater in theaters %}
+                    <option value="{{ theater.id }}" {% if request.GET.theater == theater.id|stringformat:"i" %}selected{% endif %}>
+                        {{ theater.name }} - {{ theater.location }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <select name="genre" class="form-select me-2">
+                    <option value="">All Genres</option>
+                    {% for genre in genres %}
+                    <option value="{{ genre }}" {% if request.GET.genre == genre %}selected{% endif %}>
+                        {{ genre }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for movie in movies %}
+        <div class="col-md-4 col-lg-3 mb-4">
+            <div class="card h-100">
+                {% if movie.poster %}
+                <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}">
+                {% else %}
+                <div class="bg-secondary text-white text-center py-5">No Image</div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ movie.title }}</h5>
+                    <p class="card-text"><span class="badge bg-primary">{{ movie.genre }}</span></p>
+                    <p class="card-text small">{{ movie.duration }} minutes</p>
+                    {% if not movie.is_currently_playing %}
+                    <p class="card-text"><small class="text-muted">Release Date: {{ movie.release_date }}</small></p>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'movie_detail' movie.id %}" class="btn btn-outline-primary w-100">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <p class="text-center">No movies found matching your criteria.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

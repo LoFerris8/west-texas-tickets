@@ -1,0 +1,99 @@
+<!-- templates/admin/show_form.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | Admin Dashboard | West Texas Tickets{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3>{{ title }}</h3>
+    </div>
+    <div class="card-body">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="{{ form.movie.id_for_label }}" class="form-label">Movie</label>
+                {{ form.movie }}
+                {% if form.movie.errors %}
+                    <div class="text-danger">{{ form.movie.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.theater.id_for_label }}" class="form-label">Theater</label>
+                {{ form.theater }}
+                {% if form.theater.errors %}
+                    <div class="text-danger">{{ form.theater.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.datetime.id_for_label }}" class="form-label">Date and Time</label>
+                {{ form.datetime }}
+                {% if form.datetime.errors %}
+                    <div class="text-danger">{{ form.datetime.errors }}</div>
+                {% endif %}
+                <div class="form-text">Format: YYYY-MM-DD HH:MM</div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.price.id_for_label }}" class="form-label">Ticket Price ($)</label>
+                        {{ form.price }}
+                        {% if form.price.errors %}
+                            <div class="text-danger">{{ form.price.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.available_seats.id_for_label }}" class="form-label">Available Seats</label>
+                        {{ form.available_seats }}
+                        {% if form.available_seats.errors %}
+                            <div class="text-danger">{{ form.available_seats.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex mt-4">
+                <button type="submit" class="btn btn-primary me-2">
+                    {% if form.instance.id %}Update Show{% else %}Add Show{% endif %}
+                </button>
+                <a href="{% url 'manage_shows' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Bootstrap form styling
+        const formSelects = document.querySelectorAll('select');
+        formSelects.forEach(select => {
+            select.classList.add('form-select');
+        });
+        
+        const formInputs = document.querySelectorAll('input');
+        formInputs.forEach(input => {
+            if (input.type !== 'checkbox' && input.type !== 'radio') {
+                input.classList.add('form-control');
+            }
+        });
+    });
+</script>
+{% endblock %}

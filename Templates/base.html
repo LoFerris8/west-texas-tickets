@@ -1,0 +1,115 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}West Texas Tickets{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">West Texas Tickets</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'movie_list' %}">Now Playing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'upcoming_movies' %}">Coming Soon</a>
+                    </li>
+                </ul>
+                <form class="d-flex" action="{% url 'search_movies' %}" method="GET">
+                    <input class="form-control me-2" type="search" name="q" placeholder="Search movies...">
+                    <button class="btn btn-outline-light" type="submit">Search</button>
+                </form>
+                <ul class="navbar-nav ms-3">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'profile' %}">My Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'my_tickets' %}">My Tickets</a></li>
+                                {% if user.is_staff %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}">Admin Dashboard</a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'signup' %}">Sign Up</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>West Texas Tickets</h5>
+                    <p>The convenient way to purchase movie tickets for theaters in Lubbock, Amarillo, Levelland, Plainview, Snyder, and Abilene.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'home' %}" class="text-white">Home</a></li>
+                        <li><a href="{% url 'movie_list' %}" class="text-white">Now Playing</a></li>
+                        <li><a href="{% url 'upcoming_movies' %}" class="text-white">Coming Soon</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Our Theaters</h5>
+                    <ul class="list-unstyled">
+                        <li>Lubbock</li>
+                        <li>Amarillo</li>
+                        <li>Levelland</li>
+                        <li>Plainview</li>
+                        <li>Snyder</li>
+                        <li>Abilene</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; 2025 West Texas Tickets. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

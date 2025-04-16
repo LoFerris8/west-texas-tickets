@@ -1,0 +1,178 @@
+<!-- templates/movies/movie_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ movie.title }} | West Texas Tickets{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-4">
+        {% if movie.poster %}
+        <img src="{{ movie.poster.url }}" class="img-fluid rounded" alt="{{ movie.title }}">
+        {% else %}
+        <div class="bg-secondary text-white text-center py-5 rounded">No Image</div>
+        {% endif %}
+    </div>
+    <div class="col-md-8">
+        <h1>{{ movie.title }}</h1>
+        
+        <div class="mb-3">
+            <span class="badge bg-primary">{{ movie.genre }}</span>
+            <span class="badge bg-secondary">{{ movie.duration }} min</span>
+            {% if avg_rating %}
+            <div class="mt-2">
+                <div class="stars">
+                    {% for i in "12345" %}
+                    <i class="fas fa-star {% if forloop.counter <= avg_rating %}text-warning{% else %}text-secondary{% endif %}"></i>
+                    {% endfor %}
+                    <span class="ms-2">{{ avg_rating|floatformat:1 }}/5</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <h5>Synopsis</h5>
+        <p>{{ movie.description }}</p>
+        
+        <h5>Release Date</h5>
+        <p>{{ movie.release_date }}</p>
+    </div>
+</div>
+
+{% if movie.is_currently_playing %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h3>Showtimes</h3>
+    </div>
+    <div class="card-body">
+        {% if showtimes %}
+        <form action="{% url 'purchase_ticket' 0 %}" method="GET" id="showtimeForm">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="theater" class="form-label">Theater Location</label>
+                    <select class="form-select" id="theater" name="theater">
+                        <option value="">All Locations</option>
+                        {% for theater in theaters %}
+                        <option value="{{ theater.id }}">{{ theater.name }} - {{ theater.location }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="date" class="form-label">Date</label>
+                    <select class="form-select" id="date" name="date">
+                        <option value="">All Dates</option>
+                        {% for date in showtimes|dictsort:"datetime"|dictsortreversed:"datetime"|unique:"datetime.date" %}
+                        <option value="{{ date.datetime|date:'Y-m-d' }}">{{ date.datetime|date:"F j, Y" }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="time" class="form-label">Time</label>
+                    <select class="form-select" id="time" name="time">
+                        <option value="">All Times</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+        
+        <div class="mt-4" id="showtime-results">
+            {% for showtime in showtimes %}
+            <div class="showtime-item theater-{{ showtime.theater.id }} date-{{ showtime.datetime|date:'Y-m-d' }}">
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <h5 class="mb-0">{{ showtime.theater.name }}</h5>
+                                <small>{{ showtime.theater.location }}</small>
+                            </div>
+                            <div class="col-md-3">
+                                {{ showtime.datetime|date:"F j, Y" }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ showtime.datetime|time:"g:i A" }}
+                            </div>
+                            <div class="col-md-1">
+                                ${{ showtime.price }}
+                            </div>
+                            <div class="col-md-2">
+                                <a href="{% url 'purchase_ticket' showtime.id %}" class="btn btn-primary btn-sm">Buy Tickets</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No showtimes available for this movie at the moment.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>Reviews</h3>
+        <a href="{% url 'add_review' movie.id %}" class="btn btn-primary btn-sm">Add Your Review</a>
+    </div>
+    <div class="card-body">
+        {% if reviews %}
+        {% for review in reviews %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h5 class="card-title">{{ review.user.username }}</h5>
+                    <div class="stars">
+                        {% for i in "12345" %}
+                        <i class="fas fa-star {% if forloop.counter <= review.rating %}text-warning{% else %}text-secondary{% endif %}"></i>
+                        {% endfor %}
+                    </div>
+                </div>
+                <p class="card-text">{{ review.comment }}</p>
+                <div class="text-muted small">{{ review.created_date }}</div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>No reviews yet. Be the first to review this movie!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Filter showtimes based on selections
+    document.addEventListener('DOMContentLoaded', function() {
+        const theaterSelect = document.getElementById('theater');
+        const dateSelect = document.getElementById('date');
+        const timeSelect = document.getElementById('time');
+        const showtimeItems = document.querySelectorAll('.showtime-item');
+        
+        // Filter function
+        function filterShowtimes() {
+            const theaterValue = theaterSelect.value;
+            const dateValue = dateSelect.value;
+            const timeValue = timeSelect.value;
+            
+            showtimeItems.forEach(item => {
+                let showItem = true;
+                
+                if (theaterValue && !item.classList.contains('theater-' + theaterValue)) {
+                    showItem = false;
+                }
+                
+                if (dateValue && !item.classList.contains('date-' + dateValue)) {
+                    showItem = false;
+                }
+                
+                item.style.display = showItem ? 'block' : 'none';
+            });
+        }
+        
+        // Event listeners
+        theaterSelect.addEventListener('change', filterShowtimes);
+        dateSelect.addEventListener('change', filterShowtimes);
+        timeSelect.addEventListener('change', filterShowtimes);
+    });
+</script>
+{% endblock %}

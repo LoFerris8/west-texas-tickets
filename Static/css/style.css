@@ -1,0 +1,74 @@
+/* General styling */
+body {
+    font-family: 'Roboto', sans-serif;
+    color: #333;
+}
+
+/* Hero section */
+.hero-section {
+    background-color: #f8f9fa;
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0.5rem;
+}
+
+/* Movie card styling */
+.card {
+    transition: transform 0.3s;
+    height: 100%;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.card-img-top {
+    height: 300px;
+    object-fit: cover;
+}
+
+/* Stars rating */
+.stars {
+    color: #ccc;
+}
+
+.stars .fas.text-warning {
+    color: #ffc107;
+}
+
+/* Ticket styling */
+.ticket-card {
+    border: 2px dashed #ccc;
+    background-color: #fff;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Barcode section */
+#barcode {
+    display: inline-block;
+    margin: 1rem 0;
+}
+
+/* Showtime items */
+.showtime-item {
+    margin-bottom: 0.5rem;
+}
+
+/* Print styling */
+@media print {
+    nav, footer, .btn, .alert {
+        display: none !important;
+    }
+    
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .card-header {
+        background-color: #fff !important;
+        color: #000 !important;
+    }
+}

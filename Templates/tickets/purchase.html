@@ -1,0 +1,156 @@
+<!-- templates/tickets/purchase.html -->
+{% extends 'base.html' %}
+
+{% block title %}Purchase Tickets | West Texas Tickets{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Order Summary</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-flex mb-4">
+                    {% if showtime.movie.poster %}
+                    <img src="{{ showtime.movie.poster.url }}" class="img-thumbnail me-3" style="width: 100px;" alt="{{ showtime.movie.title }}">
+                    {% else %}
+                    <div class="bg-secondary text-white text-center me-3" style="width: 100px; height: 150px;">No Image</div>
+                    {% endif %}
+                    <div>
+                        <h4>{{ showtime.movie.title }}</h4>
+                        <p class="mb-1">{{ showtime.theater.name }} - {{ showtime.theater.location }}</p>
+                        <p class="mb-1">{{ showtime.datetime|date:"F j, Y" }} at {{ showtime.datetime|time:"g:i A" }}</p>
+                        <p class="mb-0">Price per ticket: ${{ showtime.price }}</p>
+                    </div>
+                </div>
+
+                <form method="post" id="purchaseForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.quantity.id_for_label }}" class="form-label">Number of Tickets (Max 10)</label>
+                        {{ form.quantity }}
+                        <div class="form-text">Available seats: {{ showtime.available_seats }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Total: $<span id="totalPrice">{{ showtime.price }}</span></label>
+                    </div>
+                    <!-- adding ticket data variable -->
+                    <div id="ticket-data" data-price="{{ showtime.price|floatformat:2 }}"></div>
+                    <hr>
+                    
+                    <h4>Payment Information</h4>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <div>
+                            {% for radio in form.payment_method %}
+                            <div class="form-check form-check-inline">
+                                {{ radio.tag }}
+                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div id="creditCardFields" class="payment-fields">
+                        <div class="mb-3">
+                            <label for="{{ form.card_number.id_for_label }}" class="form-label">Card Number</label>
+                            {{ form.card_number }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.expiration_date.id_for_label }}" class="form-label">Expiration Date</label>
+                                {{ form.expiration_date }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.cvv.id_for_label }}" class="form-label">CVV</label>
+                                {{ form.cvv }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="venmoFields" class="payment-fields d-none">
+                        <div class="mb-3">
+                            <label for="{{ form.venmo_username.id_for_label }}" class="form-label">Venmo Username</label>
+                            {{ form.venmo_username }}
+                        </div>
+                    </div>
+                    
+                    <div id="paypalFields" class="payment-fields d-none">
+                        <div class="mb-3">
+                            <label for="{{ form.paypal_email.id_for_label }}" class="form-label">PayPal Email</label>
+                            {{ form.paypal_email }}
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-lg mt-3">Complete Purchase</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h4>Purchase Information</h4>
+            </div>
+            <div class="card-body">
+                <p>Please note:</p>
+                <ul>
+                    <li>Tickets cannot be refunded after purchase</li>
+                    <li>Maximum 10 tickets per transaction</li>
+                    <li>Arrive at least 15 minutes before showtime</li>
+                    <li>Your electronic ticket will be emailed to you</li>
+                </ul>
+                <p>Need help? Contact customer service at support@westtexastickets.com</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const quantityInput = document.getElementById('id_quantity');
+        const totalPriceElement = document.getElementById('totalPrice');
+        const pricePerTicket = parseFloat(document.getElementById('ticket-data').dataset.price);
+    
+        
+        // Payment method toggle
+        const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
+        const creditCardFields = document.getElementById('creditCardFields');
+        const venmoFields = document.getElementById('venmoFields');
+        const paypalFields = document.getElementById('paypalFields');
+        
+        // Update total price when quantity changes
+        quantityInput.addEventListener('change', function() {
+            const quantity = parseInt(this.value) || 1;
+            totalPriceElement.textContent = (quantity * pricePerTicket).toFixed(2);
+        });
+        
+        // Toggle payment fields based on selected method
+        paymentRadios.forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                // Hide all payment fields
+                creditCardFields.classList.add('d-none');
+                venmoFields.classList.add('d-none');
+                paypalFields.classList.add('d-none');
+                
+                // Show the selected payment fields
+                if (this.value === 'credit_card') {
+                    creditCardFields.classList.remove('d-none');
+                } else if (this.value === 'venmo') {
+                    venmoFields.classList.remove('d-none');
+                } else if (this.value === 'paypal') {
+                    paypalFields.classList.remove('d-none');
+                }
+            });
+        });
+    });
+    </script>
+{% endblock %}

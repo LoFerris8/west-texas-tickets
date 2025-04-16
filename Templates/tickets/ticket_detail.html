@@ -1,0 +1,73 @@
+<!-- templates/tickets/ticket_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}Your Ticket | West Texas Tickets{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Your Ticket</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <h4 class="alert-heading">Purchase Successful!</h4>
+                    <p>Your ticket has been purchased successfully. You can print this page or show the barcode on your device at the theater.</p>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h4>{{ ticket.showtime.movie.title }}</h4>
+                        <p>Theater: {{ ticket.showtime.theater.name }} - {{ ticket.showtime.theater.location }}</p>
+                        <p>Date: {{ ticket.showtime.datetime|date:"F j, Y" }}</p>
+                        <p>Time: {{ ticket.showtime.datetime|time:"g:i A" }}</p>
+                        <p>Quantity: {{ ticket.quantity }} ticket(s)</p>
+                        <p>Total Paid: ${{ ticket.total_price }}</p>
+                        <p>Purchase Date: {{ ticket.purchase_date }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        {% if ticket.showtime.movie.poster %}
+                        <img src="{{ ticket.showtime.movie.poster.url }}" class="img-fluid rounded" alt="{{ ticket.showtime.movie.title }}">
+                        {% else %}
+                        <div class="bg-secondary text-white text-center py-5 rounded">No Image</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="text-center mb-4">
+                    <h5>Scan this barcode at the theater</h5>
+                    <div class="my-3">
+                        <svg id="barcode"></svg>
+                    </div>
+                    <p>Ticket ID: {{ ticket.barcode }}</p>
+                </div>
+                
+                <div class="text-center">
+                    <button class="btn btn-primary me-2" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i>Print Ticket
+                    </button>
+                    <a href="{% url 'my_tickets' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-ticket-alt me-2"></i>My Tickets
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        JsBarcode("#barcode", "{{ ticket.barcode }}", {
+            format: "CODE128",
+            lineColor: "#000",
+            width: 2,
+            height: 100,
+            displayValue: false
+        });
+    });
+</script>
+{% endblock %}

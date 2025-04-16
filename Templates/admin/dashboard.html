@@ -1,0 +1,95 @@
+<!-- templates/admin/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard | West Texas Tickets{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Admin Dashboard</h1>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Total Tickets Sold</h5>
+                <h2 class="card-text">{{ total_tickets }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Total Revenue</h5>
+                <h2 class="card-text">${{ total_revenue|floatformat:2 }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Movies Playing</h5>
+                <h2 class="card-text">{{ movies_playing }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Recent Ticket Sales</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Movie</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th>Purchase Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in recent_tickets %}
+                            <tr>
+                                <td>{{ ticket.id }}</td>
+                                <td>{{ ticket.user.username }}</td>
+                                <td>{{ ticket.showtime.movie.title }}</td>
+                                <td>{{ ticket.quantity }}</td>
+                                <td>${{ ticket.total_price }}</td>
+                                <td>{{ ticket.purchase_date }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No recent ticket sales</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Admin Actions</h3>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{% url 'manage_shows' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-film me-2"></i>Manage Shows
+                    </a>
+                    <a href="/admin/" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cog me-2"></i>Django Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

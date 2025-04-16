@@ -1,0 +1,80 @@
+<!-- templates/home.html -->
+{% extends 'base.html' %}
+
+{% block title %}West Texas Tickets - Home{% endblock %}
+
+{% block content %}
+<div class="hero-section py-5 bg-light rounded mb-4">
+    <div class="container text-center">
+        <h1 class="display-4">Welcome to West Texas Tickets</h1>
+        <p class="lead">Purchase movie tickets online for theaters in Lubbock, Amarillo, Levelland, Plainview, Snyder, and Abilene.</p>
+        <div class="mt-4">
+            <form action="{% url 'movie_list' %}" method="GET" class="d-flex justify-content-center">
+                <select name="theater" class="form-select me-2" style="max-width: 200px;">
+                    <option value="">Select Location</option>
+                    {% for theater in theaters %}
+                    <option value="{{ theater.id }}">{{ theater.location }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Find Movies</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<h2 class="mb-4">Now Playing</h2>
+<div class="row">
+    {% for movie in current_movies %}
+    <div class="col-md-4 col-lg-2 mb-4">
+        <div class="card h-100">
+            {% if movie.poster %}
+            <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}">
+            {% else %}
+            <div class="bg-secondary text-white text-center py-5">No Image</div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ movie.title }}</h5>
+                <p class="card-text small">{{ movie.genre }}</p>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'movie_detail' movie.id %}" class="btn btn-sm btn-outline-primary w-100">View Details</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p class="text-center">No movies currently playing.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-5 mb-4">
+    <h2>Coming Soon</h2>
+    <a href="{% url 'upcoming_movies' %}" class="btn btn-outline-secondary">View All</a>
+</div>
+<div class="row">
+    {% for movie in upcoming_movies %}
+    <div class="col-md-4 col-lg-2 mb-4">
+        <div class="card h-100">
+            {% if movie.poster %}
+            <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}">
+            {% else %}
+            <div class="bg-secondary text-white text-center py-5">No Image</div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ movie.title }}</h5>
+                <p class="card-text small">{{ movie.genre }}</p>
+                <p class="card-text small">Release: {{ movie.release_date }}</p>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'movie_detail' movie.id %}" class="btn btn-sm btn-outline-primary w-100">View Details</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p class="text-center">No upcoming movies found.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

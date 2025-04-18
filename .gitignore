@@ -28,6 +28,7 @@ db.sqlite3-journal
 media
 
 # Virtual Environment
+.venv
 venv/
 ENV/
 .env

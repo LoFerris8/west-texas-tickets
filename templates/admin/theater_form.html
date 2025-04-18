@@ -1,0 +1,63 @@
+<!-- templates/admin/theater_form.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | Admin Dashboard | West Texas Tickets{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3>{{ title }}</h3>
+    </div>
+    <div class="card-body">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="{{ form.name.id_for_label }}" class="form-label">Theater Name</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div class="text-danger">{{ form.name.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.location.id_for_label }}" class="form-label">Location</label>
+                {{ form.location }}
+                {% if form.location.errors %}
+                    <div class="text-danger">{{ form.location.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
+                {{ form.address }}
+                {% if form.address.errors %}
+                    <div class="text-danger">{{ form.address.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="d-flex mt-4">
+                <button type="submit" class="btn btn-primary me-2">
+                    {% if form.instance.id %}Update Theater{% else %}Add Theater{% endif %}
+                </button>
+                <a href="{% url 'manage_theaters' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'manage_theaters' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Theater Management
+    </a>
+</div>
+{% endblock %}

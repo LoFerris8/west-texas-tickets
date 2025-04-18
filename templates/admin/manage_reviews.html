@@ -1,0 +1,148 @@
+<!-- templates/admin/manage_reviews.html -->
+{% extends 'base.html' %}
+
+{% block title %}Manage Reviews | Admin Dashboard | West Texas Tickets{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Manage Reviews</h1>
+    <a href="{% url 'add_review_admin' %}" class="btn btn-success">
+        <i class="fas fa-plus"></i> Add New Review
+    </a>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-4">
+                <form method="GET" class="d-flex">
+                    <input type="text" name="search" class="form-control me-2" placeholder="Search reviews..." value="{{ request.GET.search }}">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-8">
+                <div class="btn-group float-end" role="group">
+                    <a href="?rating=all" class="btn btn-outline-secondary {% if not request.GET.rating or request.GET.rating == 'all' %}active{% endif %}">All Ratings</a>
+                    <a href="?rating=5" class="btn btn-outline-secondary {% if request.GET.rating == '5' %}active{% endif %}">5★</a>
+                    <a href="?rating=4" class="btn btn-outline-secondary {% if request.GET.rating == '4' %}active{% endif %}">4★</a>
+                    <a href="?rating=3" class="btn btn-outline-secondary {% if request.GET.rating == '3' %}active{% endif %}">3★</a>
+                    <a href="?rating=2" class="btn btn-outline-secondary {% if request.GET.rating == '2' %}active{% endif %}">2★</a>
+                    <a href="?rating=1" class="btn btn-outline-secondary {% if request.GET.rating == '1' %}active{% endif %}">1★</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Movie</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for review in reviews %}
+                    <tr>
+                        <td>{{ review.user.username }}</td>
+                        <td>{{ review.movie.title }}</td>
+                        <td>
+                            <div class="stars">
+                                {% for i in "12345" %}
+                                <i class="fas fa-star {% if forloop.counter <= review.rating %}text-warning{% else %}text-secondary{% endif %}"></i>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>{{ review.comment|truncatechars:50 }}</td>
+                        <td>{{ review.created_date|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'edit_review' review.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ review.id }}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                            
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="deleteModal{{ review.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ review.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteModalLabel{{ review.id }}">Confirm Deletion</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete this review?</p>
+                                            <p><strong>User:</strong> {{ review.user.username }}</p>
+                                            <p><strong>Movie:</strong> {{ review.movie.title }}</p>
+                                            <p><strong>Rating:</strong> {{ review.rating }}</p>
+                                            <p><strong>Comment:</strong> {{ review.comment|truncatechars:100 }}</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <a href="{% url 'delete_review' review.id %}" class="btn btn-danger">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No reviews found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Instant search filtering
+        const searchInput = document.querySelector('input[name="search"]');
+        const tableRows = document.querySelectorAll('tbody tr');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                
+                tableRows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (searchTerm === '' || text.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

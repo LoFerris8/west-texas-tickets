@@ -81,11 +81,23 @@
             </div>
             <div class="card-body">
                 <div class="list-group">
-                    <a href="{% url 'manage_shows' %}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-film me-2"></i>Manage Shows
+                    <a href="{% url 'manage_movies' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-video me-2"></i>Manage Movies
                     </a>
-                    <a href="/admin/" class="list-group-item list-group-item-action">
-                        <i class="fas fa-cog me-2"></i>Django Admin
+                    <a href="{% url 'manage_show' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-film me-2"></i>Manage Showtimes
+                    </a>
+                    <a href="{% url 'manage_theaters' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-building me-2"></i>Manage Theaters
+                    </a>
+                    <a href="{% url 'manage_tickets' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-ticket-alt me-2"></i>Manage Tickets
+                    </a>
+                    <a href="{% url 'manage_users' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-users me-2"></i>Manage Users
+                    </a>
+                    <a href="{% url 'manage_reviews' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-star me-2"></i>Manage Reviews
                     </a>
                 </div>
             </div>

@@ -6,9 +6,9 @@ from django.contrib import messages
 from django.db.models import Sum, Count, Q, Avg
 from django.utils import timezone
 import uuid
-from .forms import CustomUserCreationForm 
+from .forms import CustomUserCreationForm, MovieForm, TheaterForm, UserProfileAdminForm, ReviewAdminForm, TicketAdminForm
 
-from .models import Movie, Theater, Showtime, Ticket, Review, UserProfile
+from .models import Movie, Theater, Showtime, Ticket, Review, UserProfile, User
 from .forms import UserProfileForm, ReviewForm, TicketPurchaseForm, ShowtimeForm
 
 def home(request):
@@ -192,7 +192,7 @@ def add_review(request, movie_id):
         'editing': existing_review is not None
     })
 
-# Admin views (require staff status)
+# Admin views
 @user_passes_test(lambda u: u.is_staff)
 def admin_dashboard(request):
     total_tickets = Ticket.objects.count()
@@ -208,9 +208,37 @@ def admin_dashboard(request):
     })
 
 @user_passes_test(lambda u: u.is_staff)
-def manage_shows(request):
-    showtimes = Showtime.objects.all().order_by('datetime')
-    return render(request, 'admin/manage_shows.html', {'showtimes': showtimes})
+def manage_show(request):
+    # Get filter parameters
+    search = request.GET.get('search', '')
+    status = request.GET.get('status', 'all')
+    
+    # Base queryset
+    showtimes = Showtime.objects.all()
+    
+    # Apply search filter if provided
+    if search:
+        showtimes = showtimes.filter(
+            Q(movie__title__icontains=search) |
+            Q(theater__name__icontains=search) |
+            Q(theater__location__icontains=search)
+        )
+    
+    # Apply status filter if provided
+    now = timezone.now()
+    if status == 'upcoming':
+        showtimes = showtimes.filter(datetime__gt=now)
+    elif status == 'past':
+        showtimes = showtimes.filter(datetime__lte=now)
+    
+    # Order by datetime
+    showtimes = showtimes.order_by('datetime')
+    
+    # Add current datetime to context
+    return render(request, 'admin/manage_shows.html', {
+        'showtimes': showtimes,
+        'now': now,
+    })
 
 @user_passes_test(lambda u: u.is_staff)
 def add_show(request):
@@ -219,7 +247,7 @@ def add_show(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Show added successfully!')
-            return redirect('manage_shows')
+            return redirect('manage_showtimes')
     else:
         form = ShowtimeForm()
     
@@ -234,7 +262,7 @@ def edit_show(request, showtime_id):
         if form.is_valid():
             form.save()
             messages.success(request, 'Show updated successfully!')
-            return redirect('manage_shows')
+            return redirect('manage_showtimes')
     else:
         form = ShowtimeForm(instance=showtime)
     
@@ -245,4 +273,305 @@ def delete_show(request, showtime_id):
     showtime = get_object_or_404(Showtime, id=showtime_id)
     showtime.delete()
     messages.success(request, 'Show deleted successfully!')
-    return redirect('manage_shows')
+    return redirect('manage_showtimes')
+
+@user_passes_test(lambda u: u.is_staff)
+def manage_movies(request):
+    """View to list and manage movies"""
+    movies = Movie.objects.all().order_by('-release_date')
+    return render(request, 'admin/manage_movies.html', {'movies': movies})
+
+@user_passes_test(lambda u: u.is_staff)
+def add_movie(request):
+    """View to add a new movie"""
+    if request.method == 'POST':
+        form = MovieForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Movie added successfully!')
+            return redirect('manage_movies')
+    else:
+        form = MovieForm()
+    
+    return render(request, 'admin/movie_form.html', {
+        'form': form,
+        'title': 'Add Movie'
+    })
+
+@user_passes_test(lambda u: u.is_staff)
+def edit_movie(request, movie_id):
+    """View to edit an existing movie"""
+    movie = get_object_or_404(Movie, id=movie_id)
+    
+    if request.method == 'POST':
+        form = MovieForm(request.POST, request.FILES, instance=movie)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Movie updated successfully!')
+            return redirect('manage_movies')
+    else:
+        form = MovieForm(instance=movie)
+    
+    return render(request, 'admin/movie_form.html', {
+        'form': form,
+        'title': 'Edit Movie'
+    })
+
+@user_passes_test(lambda u: u.is_staff)
+def delete_movie(request, movie_id):
+    """View to delete a movie"""
+    movie = get_object_or_404(Movie, id=movie_id)
+    movie.delete()
+    messages.success(request, 'Movie deleted successfully!')
+    return redirect('manage_movies')
+
+@user_passes_test(lambda u: u.is_staff)
+def manage_theaters(request):
+    """View to list and manage theaters"""
+    theaters = Theater.objects.all().order_by('location')
+    return render(request, 'admin/manage_theaters.html', {'theaters': theaters})
+
+@user_passes_test(lambda u: u.is_staff)
+def add_theater(request):
+    """View to add a new theater"""
+    if request.method == 'POST':
+        form = TheaterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Theater added successfully!')
+            return redirect('manage_theaters')
+    else:
+        form = TheaterForm()
+    
+    return render(request, 'admin/theater_form.html', {
+        'form': form,
+        'title': 'Add Theater'
+    })
+
+@user_passes_test(lambda u: u.is_staff)
+def edit_theater(request, theater_id):
+    """View to edit an existing theater"""
+    theater = get_object_or_404(Theater, id=theater_id)
+    
+    if request.method == 'POST':
+        form = TheaterForm(request.POST, instance=theater)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Theater updated successfully!')
+            return redirect('manage_theaters')
+    else:
+        form = TheaterForm(instance=theater)
+    
+    return render(request, 'admin/theater_form.html', {
+        'form': form,
+        'title': 'Edit Theater'
+    })
+
+@user_passes_test(lambda u: u.is_staff)
+def delete_theater(request, theater_id):
+    """View to delete a theater"""
+    theater = get_object_or_404(Theater, id=theater_id)
+    theater.delete()
+    messages.success(request, 'Theater deleted successfully!')
+    return redirect('manage_theaters')
+
+@user_passes_test(lambda u: u.is_staff)
+def manage_users(request):
+    """View to list and manage users"""
+    user_profiles = UserProfile.objects.all().select_related('user').order_by('user__username')
+    return render(request, 'admin/manage_users.html', {'user_profiles': user_profiles})
+
+@user_passes_test(lambda u: u.is_staff)
+def view_user(request, user_id):
+    """View to see user details and activity"""
+    user = get_object_or_404(User, id=user_id)
+    user_profile = UserProfile.objects.get(user=user)
+    tickets = Ticket.objects.filter(user=user).order_by('-purchase_date')
+    reviews = Review.objects.filter(user=user).order_by('-created_date')
+    
+    return render(request, 'admin/user_detail.html', {
+        'user': user,
+        'profile': user_profile,
+        'tickets': tickets,
+        'reviews': reviews
+    })
+
+@user_passes_test(lambda u: u.is_staff)
+def edit_user(request, user_id):
+    """View to edit a user's profile"""
+    user = get_object_or_404(User, id=user_id)
+    user_profile = UserProfile.objects.get(user=user)
+    
+    if request.method == 'POST':
+        form = UserProfileAdminForm(request.POST, instance=user_profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'User profile updated successfully!')
+            return redirect('manage_users')
+    else:
+        form = UserProfileAdminForm(instance=user_profile)
+    
+    return render(request, 'admin/user_form.html', {
+        'form': form,
+        'user': user,
+        'title': 'Edit User Profile'
+    })
+
+@user_passes_test(lambda u: u.is_staff)
+def delete_user(request, user_id):
+    """View to delete a user"""
+    user = get_object_or_404(User, id=user_id)
+    user.delete()  # This will also delete the associated profile due to CASCADE
+    messages.success(request, 'User deleted successfully!')
+    return redirect('manage_users')
+
+@user_passes_test(lambda u: u.is_staff)
+def manage_reviews(request):
+    """View to list and manage reviews"""
+    reviews = Review.objects.all().select_related('user', 'movie').order_by('-created_date')
+    return render(request, 'admin/manage_reviews.html', {'reviews': reviews})
+
+@user_passes_test(lambda u: u.is_staff)
+def add_review_admin(request):
+    """View for admin to add a review"""
+    if request.method == 'POST':
+        form = ReviewAdminForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Review added successfully!')
+            return redirect('manage_reviews')
+    else:
+        form = ReviewAdminForm()
+    
+    return render(request, 'admin/review_form.html', {
+        'form': form,
+        'title': 'Add Review'
+    })
+
+@user_passes_test(lambda u: u.is_staff)
+def edit_review(request, review_id):
+    """View to edit an existing review"""
+    review = get_object_or_404(Review, id=review_id)
+    
+    if request.method == 'POST':
+        form = ReviewAdminForm(request.POST, instance=review)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Review updated successfully!')
+            return redirect('manage_reviews')
+    else:
+        form = ReviewAdminForm(instance=review)
+    
+    return render(request, 'admin/review_form.html', {
+        'form': form,
+        'title': 'Edit Review'
+    })
+
+@user_passes_test(lambda u: u.is_staff)
+def delete_review(request, review_id):
+    """View to delete a review"""
+    review = get_object_or_404(Review, id=review_id)
+    review.delete()
+    messages.success(request, 'Review deleted successfully!')
+    return redirect('manage_reviews')
+
+@user_passes_test(lambda u: u.is_staff)
+def manage_tickets(request):
+    """View to list and manage tickets"""
+    tickets = Ticket.objects.all().select_related('user', 'showtime__movie', 'showtime__theater').order_by('-purchase_date')
+    return render(request, 'admin/manage_tickets.html', {'tickets': tickets})
+
+@user_passes_test(lambda u: u.is_staff)
+def add_ticket_admin(request):
+    """View for admin to add a ticket"""
+    if request.method == 'POST':
+        form = TicketAdminForm(request.POST)
+        if form.is_valid():
+            ticket = form.save(commit=False)
+            
+            # Update available seats
+            showtime = ticket.showtime
+            if showtime.available_seats < ticket.quantity:
+                messages.error(request, 'Not enough seats available!')
+                return render(request, 'admin/ticket_form.html', {
+                    'form': form,
+                    'title': 'Add Ticket'
+                })
+                
+            showtime.available_seats -= ticket.quantity
+            showtime.save()
+            
+            # Generate barcode if not provided
+            if not ticket.barcode:
+                ticket.barcode = str(uuid.uuid4())
+                
+            # The purchase_date will be set automatically by the model
+            ticket.save()
+            messages.success(request, 'Ticket added successfully!')
+            return redirect('manage_tickets')
+    else:
+        form = TicketAdminForm()
+    
+    return render(request, 'admin/ticket_form.html', {
+        'form': form,
+        'title': 'Add Ticket'
+    })
+
+@user_passes_test(lambda u: u.is_staff)
+def edit_ticket(request, ticket_id):
+    """View to edit an existing ticket"""
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    original_quantity = ticket.quantity
+    
+    if request.method == 'POST':
+        form = TicketAdminForm(request.POST, instance=ticket)
+        if form.is_valid():
+            updated_ticket = form.save(commit=False)
+            
+            # Update available seats if quantity changed
+            quantity_diff = updated_ticket.quantity - original_quantity
+            if quantity_diff != 0:
+                showtime = updated_ticket.showtime
+                if quantity_diff > 0 and showtime.available_seats < quantity_diff:
+                    messages.error(request, 'Not enough seats available!')
+                    return render(request, 'admin/ticket_form.html', {
+                        'form': form,
+                        'title': 'Edit Ticket'
+                    })
+                
+                showtime.available_seats -= quantity_diff
+                showtime.save()
+            
+            updated_ticket.save()
+            messages.success(request, 'Ticket updated successfully!')
+            return redirect('manage_tickets')
+    else:
+        form = TicketAdminForm(instance=ticket)
+    
+    return render(request, 'admin/ticket_form.html', {
+        'form': form,
+        'title': 'Edit Ticket'
+    })
+
+@user_passes_test(lambda u: u.is_staff)
+def delete_ticket(request, ticket_id):
+    """View to delete a ticket"""
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    
+    # Return seats to inventory
+    showtime = ticket.showtime
+    showtime.available_seats += ticket.quantity
+    showtime.save()
+    
+    ticket.delete()
+    messages.success(request, 'Ticket deleted successfully!')
+    return redirect('manage_tickets')
+
+@user_passes_test(lambda u: u.is_staff)
+def mark_ticket_used(request, ticket_id):
+    """View to mark a ticket as used"""
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    ticket.is_used = True
+    ticket.save()
+    messages.success(request, 'Ticket marked as used!')
+    return redirect('manage_tickets')

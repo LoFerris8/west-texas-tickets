@@ -1,5 +1,5 @@
 from django import forms
-from .models import UserProfile, Review, Showtime, Movie, Theater
+from .models import UserProfile, Review, Showtime, Movie, Theater, Ticket
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
@@ -100,4 +100,105 @@ class ShowtimeForm(forms.ModelForm):
         # Add custom classes or attributes if needed
         for field_name, field in self.fields.items():
             if field_name != 'datetime':  # Skip datetime field as it already has type
+                field.widget.attrs.update({'class': 'form-control'})
+                
+class MovieForm(forms.ModelForm):
+    class Meta:
+        model = Movie
+        fields = ['title', 'description', 'duration', 'genre', 'release_date', 'is_currently_playing', 'poster']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Enter movie description...'}),
+            'release_date': forms.DateInput(attrs={'type': 'date'}),
+            'is_currently_playing': forms.CheckboxInput(),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add bootstrap classes
+        for field_name, field in self.fields.items():
+            if field_name != 'is_currently_playing':  # Skip checkbox
+                field.widget.attrs.update({'class': 'form-control'})
+
+class TheaterForm(forms.ModelForm):
+    class Meta:
+        model = Theater
+        fields = ['name', 'location', 'address']
+        widgets = {
+            'address': forms.Textarea(attrs={'rows': 3}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add bootstrap classes
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({'class': 'form-control'})
+
+class UserProfileAdminForm(forms.ModelForm):
+    email = forms.EmailField(required=False)
+    first_name = forms.CharField(max_length=30, required=False)
+    last_name = forms.CharField(max_length=30, required=False)
+    is_staff = forms.BooleanField(required=False, label="Staff Status")
+    
+    class Meta:
+        model = UserProfile
+        fields = ['phone_number', 'address']
+        widgets = {
+            'address': forms.Textarea(attrs={'rows': 3}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add user fields if instance exists
+        if self.instance and self.instance.pk:
+            self.fields['email'].initial = self.instance.user.email
+            self.fields['first_name'].initial = self.instance.user.first_name
+            self.fields['last_name'].initial = self.instance.user.last_name
+            self.fields['is_staff'].initial = self.instance.user.is_staff
+        
+        # Add bootstrap classes
+        for field_name, field in self.fields.items():
+            if field_name != 'is_staff':  # Skip checkbox
+                field.widget.attrs.update({'class': 'form-control'})
+    
+    def save(self, commit=True):
+        profile = super().save(commit=False)
+        
+        # Update associated user
+        if self.instance and self.instance.pk:
+            user = profile.user
+            user.email = self.cleaned_data['email']
+            user.first_name = self.cleaned_data['first_name']
+            user.last_name = self.cleaned_data['last_name']
+            user.is_staff = self.cleaned_data['is_staff']
+            if commit:
+                user.save()
+        
+        if commit:
+            profile.save()
+        
+        return profile
+
+class ReviewAdminForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['user', 'movie', 'rating', 'comment']  # Remove 'created_date'
+        widgets = {
+            'comment': forms.Textarea(attrs={'rows': 4}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add bootstrap classes
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({'class': 'form-control'})
+class TicketAdminForm(forms.ModelForm):
+    class Meta:
+        model = Ticket
+        fields = ['user', 'showtime', 'quantity', 'total_price', 'barcode', 'is_used']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add bootstrap classes
+        for field_name, field in self.fields.items():
+            if field_name != 'is_used':  # Skip checkbox
                 field.widget.attrs.update({'class': 'form-control'})

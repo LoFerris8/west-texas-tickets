@@ -1,0 +1,204 @@
+<!-- templates/admin/user_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}User Details | Admin Dashboard | West Texas Tickets{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>User Details</h1>
+    <div>
+        <a href="{% url 'edit_user' user.id %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit User
+        </a>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            <i class="fas fa-trash"></i> Delete User
+        </button>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h3>User Information</h3>
+            </div>
+            <div class="card-body">
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>First Name:</strong> {{ user.first_name|default:"-" }}</p>
+                <p><strong>Last Name:</strong> {{ user.last_name|default:"-" }}</p>
+                <p><strong>Phone Number:</strong> {{ profile.phone_number|default:"-" }}</p>
+                <p><strong>Address:</strong> {{ profile.address|default:"-" }}</p>
+                <p><strong>Status:</strong> 
+                    {% if user.is_staff %}
+                    <span class="badge bg-primary">Staff</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Customer</span>
+                    {% endif %}
+                </p>
+                <p><strong>Date Joined:</strong> {{ user.date_joined }}</p>
+                <p><strong>Last Login:</strong> {{ user.last_login }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h3>Activity Overview</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Tickets</h5>
+                                <h2 class="card-text">{{ tickets.count }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Reviews</h5>
+                                <h2 class="card-text">{{ reviews.count }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h3>Recent Tickets</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Movie</th>
+                                <th>Theater</th>
+                                <th>Date/Time</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in tickets %}
+                            <tr>
+                                <td>{{ ticket.id }}</td>
+                                <td>{{ ticket.showtime.movie.title }}</td>
+                                <td>{{ ticket.showtime.theater.name }}</td>
+                                <td>{{ ticket.showtime.datetime }}</td>
+                                <td>{{ ticket.quantity }}</td>
+                                <td>${{ ticket.total_price }}</td>
+                                <td>
+                                    {% if ticket.is_used %}
+                                    <span class="badge bg-secondary">Used</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">No tickets found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h3>Reviews</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Movie</th>
+                                <th>Rating</th>
+                                <th>Comment</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for review in reviews %}
+                            <tr>
+                                <td>{{ review.movie.title }}</td>
+                                <td>
+                                    <div class="stars">
+                                        {% for i in "12345" %}
+                                        <i class="fas fa-star {% if forloop.counter <= review.rating %}text-warning{% else %}text-secondary{% endif %}"></i>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>{{ review.comment|truncatechars:100 }}</td>
+                                <td>{{ review.created_date }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">No reviews found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this user?</p>
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Warning: Deleting this user will also remove all associated tickets and reviews.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="{% url 'delete_user' user.id %}" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'manage_users' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to User Management
+    </a>
+</div>
+{% endblock %}

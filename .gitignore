@@ -39,7 +39,3 @@ ENV/
 *.swp
 *.swo
 .DS_Store
-
-# Django migrations, not sure if this is nessacary.
-# */migrations/*.py
-# !*/migrations/__init__.py

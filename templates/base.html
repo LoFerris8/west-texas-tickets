@@ -92,12 +92,13 @@
                 <div class="col-md-4">
                     <h5>Our Theaters</h5>
                     <ul class="list-unstyled">
-                        <li>Lubbock</li>
-                        <li>Amarillo</li>
-                        <li>Levelland</li>
-                        <li>Plainview</li>
-                        <li>Snyder</li>
-                        <li>Abilene</li>
+                        {% for theater in theaters %}    <!-- 'Our Theaters' in our footer will now reflect all theaters in our DB instead of being hardcoded. Also, they are now links that take you to that location's theater to see the movies being shown at the specific theater. -->
+                        <li>
+                            <a href="{% url 'movie_list' %}?theater={{ theater.id }}" class="text-white">
+                                {{ theater.location }}
+                            </a>
+                        </li>
+                        {% endfor %}
                     </ul>
                 </div>
             </div>

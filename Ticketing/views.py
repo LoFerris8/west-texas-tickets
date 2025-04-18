@@ -68,8 +68,28 @@ def profile_view(request):
     })
 
 def movie_list(request):
+    theater_id = request.GET.get('theater')
+    genre_filter = request.GET.get('genre')
+
     movies = Movie.objects.filter(is_currently_playing=True)
-    return render(request, 'movies/movie_list.html', {'movies': movies, 'title': 'Now Playing'})
+
+    if theater_id:
+        movies = movies.filter(showtimes__theater_id=theater_id)
+
+    if genre_filter:
+        movies = movies.filter(genre=genre_filter)
+
+    movies = movies.distinct()  # Movies can have multiple showtimes and thus appear more than once - we use distinct() to remove dups.
+
+    theaters = Theater.objects.all()
+    genres = Movie.objects.values_list('genre', flat=True).distinct()
+
+    return render(request, 'movies/movie_list.html', {
+        'movies': movies,
+        'theaters': theaters,
+        'genres': genres,
+        'title': 'Now Playing'
+    })
 
 def upcoming_movies(request):
     movies = Movie.objects.filter(is_currently_playing=False, 

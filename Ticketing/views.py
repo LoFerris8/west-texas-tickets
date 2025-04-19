@@ -73,8 +73,14 @@ def movie_list(request):
 
     movies = Movie.objects.filter(is_currently_playing=True)
 
+    selected_theater = None
+
     if theater_id:
         movies = movies.filter(showtimes__theater_id=theater_id)
+        try:
+            selected_theater = Theater.objects.get(id=theater_id)
+        except Theater.DoesNotExist:
+            selected_theater = None
 
     if genre_filter:
         movies = movies.filter(genre=genre_filter)
@@ -86,7 +92,7 @@ def movie_list(request):
 
     return render(request, 'movies/movie_list.html', {
         'movies': movies,
-        'theaters': theaters,
+        'selected_theater': selected_theater,
         'genres': genres,
         'title': 'Now Playing'
     })
@@ -98,16 +104,26 @@ def upcoming_movies(request):
 
 def movie_detail(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
+    theater_id = request.GET.get('theater')
+
     showtimes = movie.showtimes.filter(datetime__gt=timezone.now()).order_by('datetime')
-    theaters = Theater.objects.all()
+
+    if theater_id:
+        showtimes = showtimes.filter(theater_id = theater_id)
+        try:
+            selected_theater = Theater.objects.get(id=theater_id)
+        except Theater.DoesNotExist:
+            selected_theater = None
+    else:
+        selected_theater = None
+
     reviews = movie.reviews.all()[:5]  # Get 5 most recent reviews
-    
     avg_rating = reviews.aggregate(Avg('rating'))['rating__avg']
     
     return render(request, 'movies/movie_detail.html', {
         'movie': movie,
         'showtimes': showtimes,
-        'theaters': theaters,
+        'selected_theater': selected_theater,
         'reviews': reviews,
         'avg_rating': avg_rating
     })

@@ -48,7 +48,11 @@
                     {% endif %}
                 </div>
                 <div class="card-footer">
-                    <a href="{% url 'movie_detail' movie.id %}" class="btn btn-outline-primary w-100">View Details</a>
+                    {% if selected_theater %}
+                        <a href="{% url 'movie_detail' movie.id %}?theater={{ selected_theater.id }}" class="btn btn-outline-primary w-100">View Details</a>
+                    {% else %}
+                        <a href="{% url 'movie_detail' movie.id %}" class="btn btn-outline-primary w-100">View Details</a>
+                    {% endif %}
                 </div>
             </div>
         </div>

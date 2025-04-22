@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Search Movies</title>
+</head>
+<body>
+    <h1>Search Movies</h1>
+    <form class="d-flex" action="{% url 'search_movies' %}" method="GET">
+        <input class="form-control me-2" type="search" name="q" placeholder="Search movies...">
+        <button class="btn btn-outline-dark" type="submit">Search</button>
+    </form>
+
+    {% if results %}
+        <h2>Results:</h2>
+        <ul>
+            {% for movie in results %}
+                <li>
+                    <a href="{% url 'movie_detail' movie.id %}">{{ movie.title }}</a>
+                    <p>{{ movie.description|truncatewords:20 }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif query %}
+        <p class="no-results">No results found for "{{ query }}".</p>
+    {% else %}
+        <p class="no-results">Enter a search term to find movies.</p>
+    {% endif %}
+</body>
+</html>
+{% endblock %}

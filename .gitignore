@@ -39,3 +39,7 @@ ENV/
 *.swp
 *.swo
 .DS_Store
+
+# certification for remotely hosted MySQL database on Aiven.
+
+/certs

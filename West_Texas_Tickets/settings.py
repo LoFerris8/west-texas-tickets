@@ -1,5 +1,8 @@
 import os
+from dotenv import load_dotenv
 from pathlib import Path
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -54,10 +57,39 @@ TEMPLATES = [
 WSGI_APPLICATION = 'West_Texas_Tickets.wsgi.application'
 
 # Database
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'movies',
+        'USER': 'wtt_user',
+        'PASSWORD': 'wtt_password',
+        'HOST': 'localhost',  # or the hostname where your MySQL server is running
+        'PORT': '3306',      # or the port on which your MySQL server is listening
+    }
+}
+"""
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'movies',
+        'USER': 'avnadmin',
+        'PASSWORD': 'AVNS_T_w-lEUsB76lNRa_V6p',
+        'HOST': 'mysql-343193ed-wtt-tickets.g.aivencloud.com',
+        'PORT': '26502',
+        'OPTIONS': {
+            'ssl': {
+                'ca': os.path.join(BASE_DIR, 'certs', 'ca.pem'),
+            },
+        },
     }
 }
 

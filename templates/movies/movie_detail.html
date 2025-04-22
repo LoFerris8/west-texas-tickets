@@ -49,11 +49,17 @@
             <div class="row g-3">
                 <div class="col-md-4">
                     <label for="theater" class="form-label">Theater Location</label>
-                    <select class="form-select" id="theater" name="theater">
-                        <option value="">All Locations</option>
-                        {% for theater in theaters %}
-                        <option value="{{ theater.id }}">{{ theater.name }} - {{ theater.location }}</option>
-                        {% endfor %}
+                    <select class="form-select" id="theater" name="theater" {% if selected_theater %}disabled{% endif %}>
+                        {% if selected_theater %}
+                            <option value="{{ selected_theater.id }}" selected> 
+                                {{ selected_theater.location }} 
+                            </option>
+                        {%else %}
+                            <option value="">All Locations</option>
+                            {% for theater in theaters %}
+                                <option value="{{ theater.id }}">{{ theater.name }} - {{ theater.location }}</option>
+                            {% endfor %}
+                        {% endif %}
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -64,6 +70,11 @@
                         <option value="{{ date.datetime|date:'Y-m-d' }}">{{ date.datetime|date:"F j, Y" }}</option>
                         {% endfor %}
                     </select>
+
+                    {% if selected_theater %}
+                        <input type="hidden" name="theater" value="{{ selected_theater.id }}">  <!-- Still submit the theater ID using a hidden input -->
+                    {% endif %}
+
                 </div>
                 <div class="col-md-4">
                     <label for="time" class="form-label">Time</label>

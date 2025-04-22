@@ -44,8 +44,8 @@ class Migration(migrations.Migration):
                 ('datetime', models.DateTimeField()),
                 ('price', models.DecimalField(decimal_places=2, max_digits=6)),
                 ('available_seats', models.IntegerField(default=100)),
-                ('movie', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='showtimes', to='ticketing.movie')),
-                ('theater', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='showtimes', to='ticketing.theater')),
+                ('movie', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='showtimes', to='Ticketing.movie')),
+                ('theater', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='showtimes', to='Ticketing.theater')),
             ],
             options={
                 'ordering': ['datetime'],
@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
                 ('total_price', models.DecimalField(decimal_places=2, max_digits=8)),
                 ('barcode', models.CharField(max_length=50, unique=True)),
                 ('is_used', models.BooleanField(default=False)),
-                ('showtime', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tickets', to='ticketing.showtime')),
+                ('showtime', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tickets', to='Ticketing.showtime')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tickets', to=settings.AUTH_USER_MODEL)),
             ],
         ),
@@ -80,7 +80,7 @@ class Migration(migrations.Migration):
                 ('rating', models.IntegerField(validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(5)])),
                 ('comment', models.TextField()),
                 ('created_date', models.DateTimeField(auto_now_add=True)),
-                ('movie', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reviews', to='ticketing.movie')),
+                ('movie', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reviews', to='Ticketing.movie')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={

@@ -140,7 +140,7 @@ def search_movies(request):
         movies = Movie.objects.none()
     
     return render(request, 'movies/search_results.html', {
-        'movies': movies,
+        'results': movies,
         'query': query
     })
 

@@ -15,7 +15,7 @@ urlpatterns = [
     path('movies/', views.movie_list, name='movie_list'),
     path('movies/upcoming/', views.upcoming_movies, name='upcoming_movies'),
     path('movies/<int:movie_id>/', views.movie_detail, name='movie_detail'),
-    path('search/', views.search_movies, name='search_movies'),
+    path('movies/search/', views.search_movies, name='search_movies'),
     
     # Tickets
     path('purchase/<int:showtime_id>/', views.purchase_ticket, name='purchase_ticket'),

@@ -1,7 +1,7 @@
 from django import forms
 from .models import UserProfile, Review, Showtime, Movie, Theater, Ticket
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 
 class CustomUserCreationForm(UserCreationForm):
@@ -16,7 +16,18 @@ class CustomUserCreationForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2')
+        fields = ('first_name', 'last_name', 'username', 'password1', 'password2')
+
+
+class CustomAuthenticationForm(AuthenticationForm):
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your email'}),
+        label="Email"
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter your password'}),
+        label="Password"
+    )
 
 class UserProfileForm(forms.ModelForm):
     class Meta:

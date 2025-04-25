@@ -100,7 +100,28 @@ def movie_list(request):
 def upcoming_movies(request):
     movies = Movie.objects.filter(is_currently_playing=False, 
                                   release_date__gt=timezone.now().date())
-    return render(request, 'movies/movie_list.html', {'movies': movies, 'title': 'Upcoming Movies'})
+    
+    theater_id = request.GET.get('theater')
+    genre_filter = request.GET.get('genre')
+
+    if theater_id:
+        movies = movies.filter(showtimes__theater_id=theater_id)
+
+    if genre_filter:
+        movies = movies.filter(genre=genre_filter)
+
+    movies = movies.distinct()
+
+    theaters = Theater.objects.all()
+    genres = Movie.objects.values_list('genre', flat=True).distinct()
+
+    return render(request, 'movies/movie_list.html', {
+    'movies': movies,
+    'theaters': theaters,
+    'genres': genres,
+    'title': 'Upcoming Movies'
+    })
+
 
 def movie_detail(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)

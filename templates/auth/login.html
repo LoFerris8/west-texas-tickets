@@ -13,6 +13,10 @@
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
+                    {% if request.GET.next %}
+                        <input type="hidden" name="next" value="{{ request.GET.next }}">
+                    {% endif %}
+
                     
                     {% if form.errors %}
                     <div class="alert alert-danger">

@@ -1,12 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.db.models import Sum, Count, Q, Avg
 from django.utils import timezone
 import uuid
-from .forms import CustomUserCreationForm, MovieForm, TheaterForm, UserProfileAdminForm, ReviewAdminForm, TicketAdminForm
+from .forms import CustomUserCreationForm, MovieForm, TheaterForm, UserProfileAdminForm, ReviewAdminForm, TicketAdminForm, CustomAuthenticationForm
 
 from .models import Movie, Theater, Showtime, Ticket, Review, UserProfile, User
 from .forms import UserProfileForm, ReviewForm, TicketPurchaseForm, ShowtimeForm
@@ -25,13 +25,13 @@ def home(request):
 
 def login_view(request):
     if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
+        form = CustomAuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
             return redirect('home')
     else:
-        form = AuthenticationForm()
+        form = CustomAuthenticationForm()
     return render(request, 'auth/login.html', {'form': form})
 
 def signup_view(request):

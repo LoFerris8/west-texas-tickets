@@ -46,6 +46,9 @@ def signup_view(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            if not hasattr(user, 'profile'):
+                UserProfile.objects.create(user=user)
+            
             login(request, user)
             return redirect('home')
     else:

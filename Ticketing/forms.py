@@ -3,21 +3,92 @@ from .models import UserProfile, Review, Showtime, Movie, Theater, Ticket
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
+from django.db import transaction, IntegrityError
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CustomUserCreationForm(UserCreationForm):
     """
-    Custom user creation form with additional styling
+    Custom user creation form with additional styling and fields for phone number and home address
     """
+    phone_number = forms.CharField(max_length=15, required=True, label="Phone Number")
+    home_address = forms.CharField(max_length=255, required=True, label="Home Address")
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Add Bootstrap classes to form fields
         for field_name in self.fields:
             self.fields[field_name].widget.attrs.update({'class': 'form-control'})
-    
+
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'username', 'password1', 'password2')
+        fields = ('first_name', 'last_name', 'username', 'phone_number', 'home_address', 'password1', 'password2')
 
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get('phone_number')
+        logger.debug(f"Validating phone_number: {phone_number}")
+        if not phone_number:
+            raise forms.ValidationError("Phone number is required.")
+        return phone_number
+
+    def clean_home_address(self):
+        home_address = self.cleaned_data.get('home_address')
+        logger.debug(f"Validating home_address: {home_address}")
+        if not home_address:
+            raise forms.ValidationError("Home address is required.")
+        return home_address
+
+    def save(self, commit=True):
+        """
+        Save the user and create/update the UserProfile with phone_number and home_address.
+        Uses a transaction to ensure atomicity and logs the process for debugging.
+        """
+        user = super().save(commit=False)
+        logger.info(f"Attempting to save user: {user.username}, commit={commit}")
+
+        if commit:
+            try:
+                with transaction.atomic():
+                    # Save the User instance
+                    user.save()
+                    logger.info(f"User saved successfully: {user.username}")
+
+                    # Retrieve and log the data to be saved
+                    phone_number = self.cleaned_data.get('phone_number')
+                    home_address = self.cleaned_data.get('home_address')
+                    if not phone_number or not home_address:
+                        logger.error("Phone number or home address missing in cleaned_data")
+                        raise ValueError("Phone number and home address are required")
+                    logger.info(f"Saving to UserProfile - phone_number: {phone_number}, home_address: {home_address}")
+
+                    # Create or update the UserProfile
+                    profile, created = UserProfile.objects.update_or_create(
+                        user=user,
+                        defaults={
+                            'phone_number': phone_number,
+                            'address': home_address
+                        }
+                    )
+                    logger.info(f"UserProfile {'created' if created else 'updated'}: phone_number={profile.phone_number}, address={profile.address}")
+
+                    # Verify the data was saved by querying the profile
+                    saved_profile = UserProfile.objects.get(user=user)
+                    if saved_profile.phone_number != phone_number or saved_profile.address != home_address:
+                        logger.error(f"Data mismatch - expected phone_number={phone_number}, address={home_address}, got phone_number={saved_profile.phone_number}, address={saved_profile.address}")
+                        raise ValueError("Failed to save UserProfile data correctly")
+
+            except IntegrityError as e:
+                logger.error(f"IntegrityError saving User or UserProfile: {e}")
+                raise
+            except ValueError as e:
+                logger.error(f"Validation error: {e}")
+                raise
+            except Exception as e:
+                logger.error(f"Unexpected error saving UserProfile: {e}")
+                raise
+
+        return user
 
 class CustomAuthenticationForm(AuthenticationForm):
     username = forms.CharField(
@@ -33,6 +104,10 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ['phone_number', 'address']
+        widgets = {
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 
 class ReviewForm(forms.ModelForm):
     class Meta:
@@ -92,8 +167,6 @@ class TicketPurchaseForm(forms.Form):
                 
         return cleaned_data
 
-
-
 class ShowtimeForm(forms.ModelForm):
     class Meta:
         model = Showtime
@@ -135,7 +208,7 @@ class TheaterForm(forms.ModelForm):
         model = Theater
         fields = ['name', 'location', 'address']
         widgets = {
-            'address': forms.Textarea(attrs={'rows': 3}),
+            'address': forms.Textarea(attrs={'rows': '3'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -202,6 +275,7 @@ class ReviewAdminForm(forms.ModelForm):
         # Add bootstrap classes
         for field_name, field in self.fields.items():
             field.widget.attrs.update({'class': 'form-control'})
+
 class TicketAdminForm(forms.ModelForm):
     class Meta:
         model = Ticket

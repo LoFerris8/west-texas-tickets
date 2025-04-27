@@ -58,7 +58,7 @@ def signup_view(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
-
+"""
 @login_required
 def profile_view(request):
     if request.method == 'POST':
@@ -69,6 +69,27 @@ def profile_view(request):
             return redirect('profile')
     else:
         form = UserProfileForm(instance=request.user.profile)
+    
+    recent_tickets = request.user.tickets.order_by('-purchase_date')[:5]
+    
+    return render(request, 'auth/profile.html', {
+        'form': form,
+        'recent_tickets': recent_tickets
+    })
+"""
+@login_required
+def profile_view(request):
+    # Ensure the user has a UserProfile
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('profile')
+    else:
+        form = UserProfileForm(instance=profile)
     
     recent_tickets = request.user.tickets.order_by('-purchase_date')[:5]
     

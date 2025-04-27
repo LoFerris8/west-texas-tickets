@@ -65,10 +65,16 @@
                 <div class="col-md-4">
                     <label for="date" class="form-label">Date</label>
                     <select class="form-select" id="date" name="date">
-                        <option value="">All Dates</option>
-                        {% for date in showtimes|dictsort:"datetime"|dictsortreversed:"datetime"%}
-                        <option value="{{ date.datetime|date:'Y-m-d' }}">{{ date.datetime|date:"F j, Y" }}</option>
-                        {% endfor %}
+                        {% if dates|length == 1 %}
+                            {% for date in dates %}
+                                <option value="{{ date|date:'Y-m-d' }}" selected>{{ date|date:"F j, Y" }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="">All Dates</option>
+                            {% for date in dates %}
+                                <option value="{{ date|date:'Y-m-d' }}">{{ date|date:"F j, Y" }}</option>
+                            {% endfor %}
+                        {% endif %}
                     </select>
 
                     {% if selected_theater %}
@@ -152,14 +158,45 @@
 
 {% block extra_js %}
 <script>
-    // Filter showtimes based on selections
     document.addEventListener('DOMContentLoaded', function() {
         const theaterSelect = document.getElementById('theater');
         const dateSelect = document.getElementById('date');
         const timeSelect = document.getElementById('time');
         const showtimeItems = document.querySelectorAll('.showtime-item');
-        
-        // Filter function
+
+        const showtimesData = [
+            {% for showtime in showtimes %}
+            {
+                id: "{{ showtime.id }}",
+                date: "{{ showtime.datetime|date:'Y-m-d' }}",
+                time: "{{ showtime.datetime|time:'g:i A' }}",
+            },
+            {% endfor %}
+        ];
+
+        function updateTimesForSelectedDate() {
+            const selectedDate = dateSelect.value;
+            timeSelect.innerHTML = '<option value="">All Times</option>';
+
+            if (!selectedDate) {
+                return;
+            }
+
+            const filteredTimes = showtimesData.filter(s => s.date === selectedDate);
+
+            const uniqueTimes = new Set(); 
+            filteredTimes.forEach(showtime => {
+                if (!uniqueTimes.has(showtime.time)) { 
+                    uniqueTimes.add(showtime.time);
+                    
+                    const option = document.createElement('option');
+                    option.value = showtime.time;
+                    option.textContent = showtime.time;
+                    timeSelect.appendChild(option);
+                }
+            });
+        }
+
         function filterShowtimes() {
             const theaterValue = theaterSelect.value;
             const dateValue = dateSelect.value;
@@ -175,15 +212,19 @@
                 if (dateValue && !item.classList.contains('date-' + dateValue)) {
                     showItem = false;
                 }
-                
+
                 item.style.display = showItem ? 'block' : 'none';
             });
         }
-        
-        // Event listeners
+
         theaterSelect.addEventListener('change', filterShowtimes);
-        dateSelect.addEventListener('change', filterShowtimes);
+        dateSelect.addEventListener('change', function() {
+            updateTimesForSelectedDate();
+            filterShowtimes();
+        });
         timeSelect.addEventListener('change', filterShowtimes);
+
+        updateTimesForSelectedDate();
     });
 </script>
 {% endblock %}

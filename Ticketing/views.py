@@ -136,9 +136,9 @@ def upcoming_movies(request):
 def movie_detail(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     theater_id = request.GET.get('theater')
-
     showtimes = movie.showtimes.filter(datetime__gt=timezone.now()).order_by('datetime')
-
+    dates = sorted(set(showtime.datetime.date() for showtime in showtimes))
+    
     if theater_id:
         showtimes = showtimes.filter(theater_id = theater_id)
         try:
@@ -156,7 +156,8 @@ def movie_detail(request, movie_id):
         'showtimes': showtimes,
         'selected_theater': selected_theater,
         'reviews': reviews,
-        'avg_rating': avg_rating
+        'avg_rating': avg_rating,
+        'dates': dates,
     })
 
 def search_movies(request):

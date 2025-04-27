@@ -17,7 +17,6 @@ class CustomUserCreationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Add Bootstrap classes to form fields
         for field_name in self.fields:
             self.fields[field_name].widget.attrs.update({'class': 'form-control'})
 
@@ -28,21 +27,21 @@ class CustomUserCreationForm(UserCreationForm):
     def clean_phone_number(self):
         phone_number = self.cleaned_data.get('phone_number')
         logger.debug(f"Validating phone_number: {phone_number}")
-        if not phone_number:
-            raise forms.ValidationError("Phone number is required.")
+        if not phone_number or phone_number.strip() == "":
+            raise forms.ValidationError("Phone number is required and cannot be empty.")
         return phone_number
 
     def clean_home_address(self):
         home_address = self.cleaned_data.get('home_address')
         logger.debug(f"Validating home_address: {home_address}")
-        if not home_address:
-            raise forms.ValidationError("Home address is required.")
+        if not home_address or home_address.strip() == "":
+            raise forms.ValidationError("Home address is required and cannot be empty.")
         return home_address
 
     def save(self, commit=True):
         """
         Save the user and create/update the UserProfile with phone_number and home_address.
-        Uses a transaction to ensure atomicity and logs the process for debugging.
+        Ensures data is written to Ticketing_userprofile with validation and verification.
         """
         user = super().save(commit=False)
         logger.info(f"Attempting to save user: {user.username}, commit={commit}")
@@ -50,39 +49,57 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             try:
                 with transaction.atomic():
-                    # Save the User instance
+                    # Save the User instance (updates auth_user)
                     user.save()
-                    logger.info(f"User saved successfully: {user.username}")
+                    logger.info(f"User saved successfully to auth_user: {user.username}")
 
-                    # Retrieve and log the data to be saved
+                    # Validate cleaned_data
                     phone_number = self.cleaned_data.get('phone_number')
                     home_address = self.cleaned_data.get('home_address')
+                    logger.info(f"Raw cleaned_data - phone_number: {phone_number!r}, home_address: {home_address!r}")
+
                     if not phone_number or not home_address:
-                        logger.error("Phone number or home address missing in cleaned_data")
-                        raise ValueError("Phone number and home address are required")
-                    logger.info(f"Saving to UserProfile - phone_number: {phone_number}, home_address: {home_address}")
+                        logger.error(f"Invalid data: phone_number={phone_number!r}, home_address={home_address!r}")
+                        raise ValueError("Phone number and home address are required and cannot be empty")
 
-                    # Create or update the UserProfile
-                    profile, created = UserProfile.objects.update_or_create(
-                        user=user,
-                        defaults={
-                            'phone_number': phone_number,
-                            'address': home_address
-                        }
-                    )
-                    logger.info(f"UserProfile {'created' if created else 'updated'}: phone_number={profile.phone_number}, address={profile.address}")
+                    # Check if UserProfile exists (may have been created by signal)
+                    try:
+                        profile = UserProfile.objects.get(user=user)
+                        logger.info(f"UserProfile exists for user: {user.username}, updating fields")
+                        created = False
+                    except UserProfile.DoesNotExist:
+                        logger.info(f"No UserProfile exists for user: {user.username}, creating new")
+                        created = True
+                        profile = None
 
-                    # Verify the data was saved by querying the profile
+                    # Update or create UserProfile (updates Ticketing_userprofile)
+                    if created:
+                        profile = UserProfile.objects.create(
+                            user=user,
+                            phone_number=phone_number,
+                            address=home_address
+                        )
+                        logger.info(f"Created UserProfile in Ticketing_userprofile: phone_number={profile.phone_number!r}, address={profile.address!r}")
+                    else:
+                        profile.phone_number = phone_number
+                        profile.address = home_address
+                        profile.save()
+                        logger.info(f"Updated UserProfile in Ticketing_userprofile: phone_number={profile.phone_number!r}, address={profile.address!r}")
+
+                    # Verify the data was saved
                     saved_profile = UserProfile.objects.get(user=user)
                     if saved_profile.phone_number != phone_number or saved_profile.address != home_address:
-                        logger.error(f"Data mismatch - expected phone_number={phone_number}, address={home_address}, got phone_number={saved_profile.phone_number}, address={saved_profile.address}")
-                        raise ValueError("Failed to save UserProfile data correctly")
+                        logger.error(f"Final verification failed: expected phone_number={phone_number!r}, address={home_address!r}, got phone_number={saved_profile.phone_number!r}, address={saved_profile.address!r}")
+                        raise ValueError("Failed to save UserProfile data to Ticketing_userprofile")
 
             except IntegrityError as e:
                 logger.error(f"IntegrityError saving User or UserProfile: {e}")
                 raise
             except ValueError as e:
                 logger.error(f"Validation error: {e}")
+                raise
+            except UserProfile.DoesNotExist:
+                logger.error("UserProfile not found after save attempt")
                 raise
             except Exception as e:
                 logger.error(f"Unexpected error saving UserProfile: {e}")

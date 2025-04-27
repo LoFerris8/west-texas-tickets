@@ -11,6 +11,10 @@ from .forms import CustomUserCreationForm, MovieForm, TheaterForm, UserProfileAd
 from .models import Movie, Theater, Showtime, Ticket, Review, UserProfile, User
 from .forms import UserProfileForm, ReviewForm, TicketPurchaseForm, ShowtimeForm
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 def home(request):
     current_movies = Movie.objects.filter(is_currently_playing=True)[:6]
     upcoming_movies = Movie.objects.filter(is_currently_playing=False, 
@@ -45,19 +49,28 @@ def signup_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            if not hasattr(user, 'profile'):
-                UserProfile.objects.create(user=user)
-            
-            login(request, user)
-            return redirect('home')
+            try:
+                user = form.save()
+                login(request, user)
+                logger.info(f"User {user.username} signed up and logged in successfully")
+                return redirect('home')
+            except Exception as e:
+                logger.error(f"Error during signup: {e}")
+                form.add_error(None, f"Error during signup: {str(e)}")
+        else:
+            logger.error(f"Form validation failed: {form.errors}")
     else:
         form = CustomUserCreationForm()
     return render(request, 'auth/signup.html', {'form': form})
 
 def logout_view(request):
+    """
+    Handle user logout and redirect to the login page.
+    """
+    logger.info(f"Logging out user: {request.user.username if request.user.is_authenticated else 'Anonymous'}")
     logout(request)
-    return redirect('home')
+    logger.info("User logged out successfully")
+    return redirect('login')  # Redirect to the login page (ensure 'login' URL name exists)
 """
 @login_required
 def profile_view(request):

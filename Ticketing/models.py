@@ -72,3 +72,12 @@ class UserProfile(models.Model):
     
     def __str__(self):
         return f"Profile for {self.user.username}"
+    
+class Payment(models.Model):
+    ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE, related_name='payment')
+    payment_method = models.CharField(max_length=50, null=False)
+    encrypted_payment_details = models.TextField(null=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Payment for Ticket #{self.ticket.id}"

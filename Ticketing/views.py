@@ -7,8 +7,8 @@ from django.db.models import Sum, Count, Q, Avg
 from django.utils import timezone
 import uuid
 from .forms import CustomUserCreationForm, MovieForm, TheaterForm, UserProfileAdminForm, ReviewAdminForm, TicketAdminForm, CustomAuthenticationForm
-
-from .models import Movie, Theater, Showtime, Ticket, Review, UserProfile, User
+from .utils import encrypt_payment_data
+from .models import Movie, Theater, Showtime, Ticket, Review, UserProfile, User, Payment
 from .forms import UserProfileForm, ReviewForm, TicketPurchaseForm, ShowtimeForm
 
 import logging
@@ -218,6 +218,7 @@ def purchase_ticket(request, showtime_id):
         form = TicketPurchaseForm(request.POST)
         if form.is_valid():
             quantity = form.cleaned_data['quantity']
+            payment_method = form.cleaned_data['payment_method']
             
             if quantity > 10:
                 messages.error(request, 'Maximum 10 tickets per purchase.')
@@ -226,6 +227,65 @@ def purchase_ticket(request, showtime_id):
             if showtime.available_seats < quantity:
                 messages.error(request, 'Not enough seats available.')
                 return redirect('purchase_ticket', showtime_id=showtime_id)
+            
+            # Process payment details based on payment method
+            payment_data = {
+                'method': payment_method
+            }
+            
+            if payment_method == 'credit_card':
+                card_number = form.cleaned_data['card_number']
+                expiration_date = form.cleaned_data['expiration_date']
+                cvv = form.cleaned_data['cvv']
+                
+                # Validate credit card details
+                if not card_number or len(card_number.strip()) < 13:
+                    messages.error(request, 'Please enter a valid card number.')
+                    return render(request, 'tickets/purchase.html', {'showtime': showtime, 'form': form})
+                
+                if not expiration_date or len(expiration_date.strip()) < 4:
+                    messages.error(request, 'Please enter a valid expiration date.')
+                    return render(request, 'tickets/purchase.html', {'showtime': showtime, 'form': form})
+                
+                if not cvv or len(cvv.strip()) < 3:
+                    messages.error(request, 'Please enter a valid CVV.')
+                    return render(request, 'tickets/purchase.html', {'showtime': showtime, 'form': form})
+                
+                # Add credit card details to payment data
+                payment_data.update({
+                    'card_number': card_number,
+                    'expiration_date': expiration_date,
+                    'cvv': cvv
+                })
+                
+            elif payment_method == 'venmo':
+                venmo_username = form.cleaned_data['venmo_username']
+                
+                # Validate Venmo username
+                if not venmo_username or len(venmo_username.strip()) < 3:
+                    messages.error(request, 'Please enter a valid Venmo username.')
+                    return render(request, 'tickets/purchase.html', {'showtime': showtime, 'form': form})
+                
+                # Add Venmo details to payment data
+                payment_data.update({
+                    'venmo_username': venmo_username
+                })
+                
+            elif payment_method == 'paypal':
+                paypal_email = form.cleaned_data['paypal_email']
+                
+                # Validate PayPal email
+                if not paypal_email or '@' not in paypal_email:
+                    messages.error(request, 'Please enter a valid PayPal email.')
+                    return render(request, 'tickets/purchase.html', {'showtime': showtime, 'form': form})
+                
+                # Add PayPal details to payment data
+                payment_data.update({
+                    'paypal_email': paypal_email
+                })
+            
+            # Encrypt payment data
+            encrypted_payment_details = encrypt_payment_data(payment_data)
             
             # Create ticket
             total_price = showtime.price * quantity
@@ -237,6 +297,13 @@ def purchase_ticket(request, showtime_id):
                 quantity=quantity,
                 total_price=total_price,
                 barcode=barcode
+            )
+            
+            # Save payment information using the Payment model
+            Payment.objects.create(
+                ticket=ticket,
+                payment_method=payment_method,
+                encrypted_payment_details=encrypted_payment_details
             )
             
             # Update available seats

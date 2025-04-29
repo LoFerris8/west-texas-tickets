@@ -2,6 +2,14 @@ import uuid
 import random
 import string
 import hashlib
+import base64
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from django.conf import settings
+import os
+
 
 def generate_barcode():
     """Generate a unique barcode for tickets."""
@@ -24,3 +32,30 @@ def generate_ticket_id():
 def hash_password(password):
     """Create a secure hash of the password."""
     return hashlib.sha256(password.encode()).hexdigest()
+
+# Add to Ticketing/utils.py
+
+def encrypt_payment_data(payment_data):
+
+    # Convert payment data dict to string
+    payment_str = str(payment_data)
+    
+    # Create a key using SECRET_KEY as password
+    # In production, you should use a separate encryption key, not the Django SECRET_KEY
+    password = settings.SECRET_KEY.encode()
+    salt = os.urandom(16)
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+        backend=default_backend()
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(password))
+    
+    # Encrypt the data
+    f = Fernet(key)
+    encrypted_data = f.encrypt(payment_str.encode())
+    
+    # Return both salt and encrypted data for storage
+    return base64.b64encode(salt).decode() + ":" + encrypted_data.decode()

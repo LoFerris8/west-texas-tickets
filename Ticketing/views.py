@@ -375,7 +375,7 @@ def delete_show(request, showtime_id):
     showtime = get_object_or_404(Showtime, id=showtime_id)
     showtime.delete()
     messages.success(request, 'Show deleted successfully!')
-    return redirect('manage_showtimes')
+    return redirect('manage_show')
 
 @user_passes_test(lambda u: u.is_staff)
 def manage_movies(request):

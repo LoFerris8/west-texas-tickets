@@ -206,7 +206,7 @@ class ShowtimeForm(forms.ModelForm):
 class MovieForm(forms.ModelForm):
     class Meta:
         model = Movie
-        fields = ['title', 'description', 'duration', 'genre', 'release_date', 'is_currently_playing', 'poster']
+        fields = ['title', 'description', 'duration', 'genre', 'release_date', 'is_currently_playing', 'poster', 'cast']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Enter movie description...'}),
             'release_date': forms.DateInput(attrs={'type': 'date'}),

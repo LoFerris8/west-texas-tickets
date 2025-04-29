@@ -18,9 +18,13 @@ class Movie(models.Model):
     release_date = models.DateField()
     is_currently_playing = models.BooleanField(default=True)
     poster = models.ImageField(upload_to='movie_posters/', blank=True, null=True)
+    cast = models.TextField(blank=True, help_text="Enter the cast as a comma separated list (e.g. Actor 1, Actor 2)")
     
     def __str__(self):
         return self.title
+    
+    class Meta:
+        db_table = 'Ticketing_movie'
 
 class Showtime(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='showtimes')

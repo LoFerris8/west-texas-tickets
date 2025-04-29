@@ -96,6 +96,16 @@
                 {% endif %}
                 <small class="form-text text-muted">Upload a movie poster image (optional)</small>
             </div>
+
+            <!-- Add the Cast Field Here -->
+            <div class="mb-3">
+                <label for="{{ form.cast.id_for_label }}" class="form-label">Cast</label>
+                {{ form.cast }}
+                {% if form.cast.errors %}
+                    <div class="text-danger">{{ form.cast.errors }}</div>
+                {% endif %}
+                <small class="form-text text-muted">Enter the cast as a comma-separated list (e.g., Actor 1, Actor 2)</small>
+            </div>
             
             <div class="d-flex mt-4">
                 <button type="submit" class="btn btn-primary me-2">

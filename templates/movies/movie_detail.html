@@ -35,6 +35,16 @@
         
         <h5>Release Date</h5>
         <p>{{ movie.release_date }}</p>
+
+        <!-- Add Cast Section Here -->
+        <h5>Cast</h5>
+        <p>
+            {% if movie.cast %}
+                {{ movie.cast }}
+            {% else %}
+                Not available
+            {% endif %}
+        </p>
     </div>
 </div>
 
@@ -54,7 +64,7 @@
                             <option value="{{ selected_theater.id }}" selected> 
                                 {{ selected_theater.location }} 
                             </option>
-                        {%else %}
+                        {% else %}
                             <option value="">All Locations</option>
                             {% for theater in theaters %}
                                 <option value="{{ theater.id }}">{{ theater.name }} - {{ theater.location }}</option>

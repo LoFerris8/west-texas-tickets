@@ -1,24 +1,160 @@
+<!-- templates/movies/add_review.html -->
 {% extends 'base.html' %}
 
-{% block title %}Write a Review | West Texas Tickets{% endblock %}
+{% block title %}{% if editing %}Edit{% else %}Write{% endif %} a Review | West Texas Tickets{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="text-center">Write a Review for {{ movie.title }}</h3>
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="text-center mb-0">{% if editing %}Edit{% else %}Write{% endif %} a Review for {{ movie.title }}</h3>
             </div>
             <div class="card-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        {% if movie.poster %}
+                        <img src="{{ movie.poster.url }}" class="img-fluid rounded" alt="{{ movie.title }}">
+                        {% else %}
+                        <div class="bg-secondary text-white text-center py-5 rounded">No Image</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-9">
+                        <h4>{{ movie.title }}</h4>
+                        <p class="mb-1"><span class="badge bg-primary">{{ movie.genre }}</span></p>
+                        <p class="text-muted small">{{ movie.duration }} min | Released: {{ movie.release_date }}</p>
+                    </div>
+                </div>
+                
                 <form method="post">
                     {% csrf_token %}
-                    {{ form.as_p }}
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.rating.id_for_label }}" class="form-label">Your Rating (1-5)</label>
+                        <div class="rating-stars mb-2">
+                            {% for i in "12345" %}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input star-input" type="radio" name="rating" id="star{{ i }}" value="{{ i }}" 
+                                {% if form.initial.rating == i|add:"0" %}checked{% endif %}>
+                                <label class="form-check-label" for="star{{ i }}">
+                                    <i class="fas fa-star"></i>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {{ form.rating.errors }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.comment.id_for_label }}" class="form-label">Your Comments</label>
+                        {{ form.comment }}
+                        {{ form.comment.errors }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'movie_detail' movie.id %}" class="btn btn-outline-secondary">Cancel</a>
+                        <div>
+                            {% if editing %}
+                            <button type="submit" class="btn btn-success">Update Review</button>
+                            <!-- Add delete button -->
+                            <button type="button" class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteReviewModal">
+                                Delete Review
+                            </button>
+                            {% else %}
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                            {% endif %}
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Delete Review Modal -->
+{% if editing %}
+<div class="modal fade" id="deleteReviewModal" tabindex="-1" aria-labelledby="deleteReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteReviewModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete your review for "{{ movie.title }}"?</p>
+                <p>This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="{% url 'delete_user_review' movie.id %}" class="btn btn-danger">Delete Review</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Style the form elements with Bootstrap classes
+        const commentTextarea = document.getElementById('id_comment');
+        if (commentTextarea) {
+            commentTextarea.classList.add('form-control');
+            commentTextarea.setAttribute('rows', '5');
+            commentTextarea.setAttribute('placeholder', 'Share your thoughts about the movie...');
+        }
+        
+        // Hide the default rating input (we're using our star interface)
+        const ratingInput = document.getElementById('id_rating');
+        if (ratingInput) {
+            ratingInput.style.display = 'none';
+        }
+        
+        // Star rating functionality
+        const starInputs = document.querySelectorAll('.star-input');
+        const starLabels = document.querySelectorAll('.rating-stars label');
+        
+        // Update stars color based on selection
+        function updateStars() {
+            let selectedRating = 0;
+            starInputs.forEach(input => {
+                if (input.checked) {
+                    selectedRating = parseInt(input.value);
+                }
+            });
+            
+            starLabels.forEach((label, index) => {
+                const star = label.querySelector('i');
+                if (index < selectedRating) {
+                    star.classList.add('text-warning');
+                } else {
+                    star.classList.remove('text-warning');
+                }
+            });
+            
+            // Update the hidden form field
+            if (ratingInput) {
+                ratingInput.value = selectedRating;
+            }
+        }
+        
+        // Initialize stars
+        updateStars();
+        
+        // Add event listeners to stars
+        starInputs.forEach(input => {
+            input.addEventListener('change', updateStars);
+        });
+    });
+</script>
 {% endblock %}

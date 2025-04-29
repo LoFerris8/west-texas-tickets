@@ -677,3 +677,13 @@ def mark_ticket_used(request, ticket_id):
     ticket.save()
     messages.success(request, 'Ticket marked as used!')
     return redirect('manage_tickets')
+
+@login_required
+def delete_user_review(request, movie_id):
+    movie = get_object_or_404(Movie, id=movie_id)
+    review = get_object_or_404(Review, user=request.user, movie=movie)
+    
+    # Delete the review
+    review.delete()
+    messages.success(request, 'Your review has been deleted.')
+    return redirect('movie_detail', movie_id=movie_id)

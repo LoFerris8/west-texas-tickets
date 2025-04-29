@@ -349,7 +349,7 @@ def add_show(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Show added successfully!')
-            return redirect('manage_showtimes')
+            return redirect('manage_show')
     else:
         form = ShowtimeForm()
     
@@ -364,7 +364,7 @@ def edit_show(request, showtime_id):
         if form.is_valid():
             form.save()
             messages.success(request, 'Show updated successfully!')
-            return redirect('manage_showtimes')
+            return redirect('manage_show')
     else:
         form = ShowtimeForm(instance=showtime)
     
@@ -421,12 +421,18 @@ def edit_movie(request, movie_id):
 
 @user_passes_test(lambda u: u.is_staff)
 def delete_movie(request, movie_id):
-    """View to delete a movie"""
-    movie = get_object_or_404(Movie, id=movie_id)
-    movie.delete()
-    messages.success(request, 'Movie deleted successfully!')
+    """View to delete a movie with improved error handling"""
+    try:
+        movie = get_object_or_404(Movie, id=movie_id)
+        movie_title = movie.title  # Save the title before deletion
+        movie.delete()
+        messages.success(request, f'Movie "{movie_title}" deleted successfully!')
+    except Movie.DoesNotExist:
+        messages.error(request, f'Unable to delete movie with ID {movie_id}. It may have already been deleted.')
+    except Exception as e:
+        messages.error(request, f'Error deleting movie: {str(e)}')
+    
     return redirect('manage_movies')
-
 @user_passes_test(lambda u: u.is_staff)
 def manage_theaters(request):
     """View to list and manage theaters"""

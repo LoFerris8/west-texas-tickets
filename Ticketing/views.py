@@ -92,20 +92,28 @@ def profile_view(request):
 """
 @login_required
 def profile_view(request):
-    # Ensure the user has a UserProfile
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
-    
+    user = request.user
+    profile, created = UserProfile.objects.get_or_create(user=user)
+
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, instance=profile)
+        form = UserProfileForm(request.POST, instance=profile, user=user)
         if form.is_valid():
+            # Update the User fields
+            user.first_name = form.cleaned_data['first_name']
+            user.last_name = form.cleaned_data['last_name']
+            user.username = form.cleaned_data['username']
+            user.save()
+
+            # Update the UserProfile fields
             form.save()
+
             messages.success(request, 'Profile updated successfully!')
             return redirect('profile')
     else:
-        form = UserProfileForm(instance=profile)
-    
-    recent_tickets = request.user.tickets.order_by('-purchase_date')[:5]
-    
+        form = UserProfileForm(instance=profile, user=user)
+
+    recent_tickets = user.tickets.order_by('-purchase_date')[:5]
+
     return render(request, 'auth/profile.html', {
         'form': form,
         'recent_tickets': recent_tickets

@@ -239,7 +239,7 @@ def purchase_ticket(request, showtime_id):
                 cvv = form.cleaned_data['cvv']
                 
                 # Validate credit card details
-                if not card_number or len(card_number.strip()) < 13:
+                if not card_number or len(card_number.strip()) != 16:
                     messages.error(request, 'Please enter a valid card number.')
                     return render(request, 'tickets/purchase.html', {'showtime': showtime, 'form': form})
                 
@@ -262,7 +262,7 @@ def purchase_ticket(request, showtime_id):
                 venmo_username = form.cleaned_data['venmo_username']
                 
                 # Validate Venmo username
-                if not venmo_username or len(venmo_username.strip()) < 3:
+                if not venmo_username or len(venmo_username.strip()) < 3 or not venmo_username.strip().startswith('@'):
                     messages.error(request, 'Please enter a valid Venmo username.')
                     return render(request, 'tickets/purchase.html', {'showtime': showtime, 'form': form})
                 

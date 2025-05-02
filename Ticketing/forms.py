@@ -1,9 +1,10 @@
 from django import forms
 from .models import UserProfile, Review, Showtime, Movie, Theater, Ticket
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, EmailValidator
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import transaction, IntegrityError
+from django.core.exceptions import ValidationError
 import logging
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,23 @@ class CustomUserCreationForm(UserCreationForm):
         if not home_address or home_address.strip() == "":
             raise forms.ValidationError("Home address is required and cannot be empty.")
         return home_address
+    
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        logger.debug(f"Validating username (email): {username}")
+        
+        # Check if empty
+        if not username or username.strip() == "":
+            raise forms.ValidationError("Email is required and cannot be empty.")
+        
+        # Use Django's EmailValidator to validate email format
+        email_validator = EmailValidator(message="Enter a valid email address.")
+        try:
+            email_validator(username)
+        except ValidationError:
+            raise forms.ValidationError("Enter a valid email address.")
+        
+        return username
     
     def clean(self):
         cleaned_data = super().clean()

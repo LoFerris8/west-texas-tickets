@@ -117,10 +117,6 @@ class CustomAuthenticationForm(AuthenticationForm):
         label="Password"
     )
 
-from django import forms
-from django.contrib.auth.models import User
-from .models import UserProfile
-
 class UserProfileForm(forms.ModelForm):
     first_name = forms.CharField(
         max_length=30,
@@ -184,15 +180,15 @@ class TicketPurchaseForm(forms.Form):
     )
     
     # Credit Card fields
-    card_number = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': 'Card Number'}))
-    expiration_date = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': 'MM/YY'}))
-    cvv = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': 'CVV'}))
+    card_number = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': 'Card Number', 'class': 'form-control'}))
+    expiration_date = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': 'MM/YY', 'class': 'form-control'}))
+    cvv = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': 'CVV', 'class': 'form-control'}))
     
     # Venmo field
-    venmo_username = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': 'Venmo Username'}))
+    venmo_username = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': '@venmo-username', 'class': 'form-control'}))
     
     # PayPal field
-    paypal_email = forms.EmailField(required=False, widget=forms.EmailInput(attrs={'placeholder': 'PayPal Email'}))
+    paypal_email = forms.EmailField(required=False, widget=forms.EmailInput(attrs={'placeholder': 'PayPal Email', 'class': 'form-control'}))
     
     def clean(self):
         cleaned_data = super().clean()

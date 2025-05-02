@@ -224,6 +224,10 @@ def purchase_ticket(request, showtime_id):
     
     if request.method == 'POST':
         form = TicketPurchaseForm(request.POST)
+        
+        # Store the selected payment method for re-rendering if validation fails
+        selected_payment_method = request.POST.get('payment_method')
+        
         if form.is_valid():
             quantity = form.cleaned_data['quantity']
             payment_method = form.cleaned_data['payment_method']
@@ -249,14 +253,21 @@ def purchase_ticket(request, showtime_id):
                 # Validate credit card details
                 if not card_number or len(card_number.strip()) != 16:
                     messages.error(request, 'Please enter a valid card number.')
+                    # Preserve payment method when re-rendering form
+                    form.data = form.data.copy()
+                    form.data['payment_method'] = payment_method
                     return render(request, 'tickets/purchase.html', {'showtime': showtime, 'form': form})
                 
                 if not expiration_date or len(expiration_date.strip()) < 4:
                     messages.error(request, 'Please enter a valid expiration date.')
+                    form.data = form.data.copy()
+                    form.data['payment_method'] = payment_method
                     return render(request, 'tickets/purchase.html', {'showtime': showtime, 'form': form})
                 
                 if not cvv or len(cvv.strip()) < 3:
                     messages.error(request, 'Please enter a valid CVV.')
+                    form.data = form.data.copy()
+                    form.data['payment_method'] = payment_method
                     return render(request, 'tickets/purchase.html', {'showtime': showtime, 'form': form})
                 
                 # Add credit card details to payment data
@@ -272,6 +283,9 @@ def purchase_ticket(request, showtime_id):
                 # Validate Venmo username
                 if not venmo_username or len(venmo_username.strip()) < 3 or not venmo_username.strip().startswith('@'):
                     messages.error(request, 'Please enter a valid Venmo username.')
+                    # Preserve payment method when re-rendering form
+                    form.data = form.data.copy()
+                    form.data['payment_method'] = payment_method
                     return render(request, 'tickets/purchase.html', {'showtime': showtime, 'form': form})
                 
                 # Add Venmo details to payment data
@@ -285,6 +299,8 @@ def purchase_ticket(request, showtime_id):
                 # Validate PayPal email
                 if not paypal_email or '@' not in paypal_email:
                     messages.error(request, 'Please enter a valid PayPal email.')
+                    form.data = form.data.copy()
+                    form.data['payment_method'] = payment_method
                     return render(request, 'tickets/purchase.html', {'showtime': showtime, 'form': form})
                 
                 # Add PayPal details to payment data

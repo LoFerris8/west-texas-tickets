@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 from django.contrib import messages
 from django.db.models import Sum, Count, Q, Avg
 from django.utils import timezone
+from django.urls import reverse_lazy
 import uuid
 from .forms import CustomUserCreationForm, MovieForm, TheaterForm, UserProfileAdminForm, ReviewAdminForm, TicketAdminForm, CustomAuthenticationForm
 from .utils import encrypt_payment_data
@@ -119,6 +120,21 @@ def profile_view(request):
         'form': form,
         'recent_tickets': recent_tickets
     })
+
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Important: update the session to prevent the user from being logged out
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('profile')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+    return redirect('profile')
 
 def movie_list(request):
     theater_id = request.GET.get('theater')

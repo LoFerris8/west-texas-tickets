@@ -1,4 +1,4 @@
-<!-- templates/auth/profile.html -->
+<!-- Update to templates/auth/profile.html -->
 {% extends 'base.html' %}
 
 {% block title %}My Profile | West Texas Tickets{% endblock %}
@@ -60,7 +60,12 @@
                         {% endif %}
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                    <div class="d-flex">
+                        <button type="submit" class="btn btn-primary me-2">Update Profile</button>
+                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            Change Password
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -93,6 +98,42 @@
                     <a href="{% url 'my_tickets' %}" class="btn btn-outline-primary w-100">View All My Tickets</a>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'change_password' %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="old_password" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="old_password" name="old_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password1" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="new_password1" name="new_password1" required>
+                        <small class="form-text text-muted">
+                            Your password must be at least 8 characters and can't be entirely numeric.
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password2" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="new_password2" name="new_password2" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

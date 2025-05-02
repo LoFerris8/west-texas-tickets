@@ -17,8 +17,10 @@ class CustomUserCreationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field_name in self.fields:
-            self.fields[field_name].widget.attrs.update({'class': 'form-control'})
+        # Make all fields required and add CSS class
+        for field_name, field in self.fields.items():
+            field.required = True
+            field.widget.attrs.update({'class': 'form-control'})
 
     class Meta:
         model = User
@@ -37,6 +39,17 @@ class CustomUserCreationForm(UserCreationForm):
         if not home_address or home_address.strip() == "":
             raise forms.ValidationError("Home address is required and cannot be empty.")
         return home_address
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # Validate all fields are not empty
+        for field_name, field_value in cleaned_data.items():
+            if field_name not in ['password1', 'password2']:  # Skip password fields as they have their own validation
+                if not field_value or (isinstance(field_value, str) and field_value.strip() == ""):
+                    self.add_error(field_name, f"{field_name.replace('_', ' ').title()} is required.")
+    
+        return cleaned_data
 
     def save(self, commit=True):
         """

@@ -165,7 +165,7 @@ class UserProfileForm(forms.ModelForm):
 
     username = forms.EmailField(
         required=True,
-        widget=forms.EmailInput(attrs={'class': 'form-control'}),
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
         label="Email"
     )
 

@@ -98,10 +98,11 @@ def profile_view(request):
     if request.method == 'POST':
         form = UserProfileForm(request.POST, instance=profile, user=user)
         if form.is_valid():
-            # Update the User fields
+            # Update the User fields except for username/email
             user.first_name = form.cleaned_data['first_name']
             user.last_name = form.cleaned_data['last_name']
-            user.username = form.cleaned_data['username']
+            # No longer update the username/email
+            # user.username = form.cleaned_data['username'] - remove this line
             user.save()
 
             # Update the UserProfile fields

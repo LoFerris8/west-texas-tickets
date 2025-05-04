@@ -126,6 +126,21 @@
                 });
             });
         }
+        
+        // Fix for modal flickering
+        const deleteModals = document.querySelectorAll('.modal');
+        deleteModals.forEach(modal => {
+            // Move modals to the body element to prevent positioning issues
+            document.body.appendChild(modal);
+            
+            // Ensure proper initialization
+            const bsModal = new bootstrap.Modal(modal);
+            
+            // Prevent default behavior that might cause flickering
+            modal.addEventListener('show.bs.modal', function (event) {
+                event.stopPropagation();
+            });
+        });
     });
 </script>
 {% endblock %}

@@ -197,6 +197,7 @@ def movie_detail(request, movie_id):
     theater_id = request.GET.get('theater')
     showtimes = movie.showtimes.filter(datetime__gt=timezone.now()).order_by('datetime')
     dates = sorted(set(showtime.datetime.date() for showtime in showtimes))
+    times = sorted(set(showtime.datetime.time() for showtime in showtimes))
     
     if theater_id:
         showtimes = showtimes.filter(theater_id = theater_id)
@@ -217,6 +218,7 @@ def movie_detail(request, movie_id):
         'reviews': reviews,
         'avg_rating': avg_rating,
         'dates': dates,
+        'times': times,
     })
 
 def search_movies(request):
@@ -373,6 +375,9 @@ def my_tickets(request):
 @login_required
 def add_review(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
+    if not movie.is_currently_playing:
+        messages.error(request, "You can only review movies that are currently playing.")
+        return redirect('movie_detail', movie_id=movie_id)
     
     # Check if user already reviewed this movie
     existing_review = Review.objects.filter(user=request.user, movie=movie).first()

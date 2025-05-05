@@ -96,6 +96,9 @@
                     <label for="time" class="form-label">Time</label>
                     <select class="form-select" id="time" name="time">
                         <option value="">All Times</option>
+                        {% for time in times %}
+                            <option value="{{ time }}">{{ time|time:"g:i A" }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -235,6 +238,10 @@
         timeSelect.addEventListener('change', filterShowtimes);
 
         updateTimesForSelectedDate();
+
+        if(dateSelect.value){
+            dateSelect.dispatchEvent(new Event('change'));
+        }
     });
 </script>
 {% endblock %}

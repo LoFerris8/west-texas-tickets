@@ -25,7 +25,7 @@
                     </option>
                     {% endfor %}
                 </select>
-                <button type="submit" class="btn btn-primary">Filter</button>
+                <button type="submit" class="btn btn-secondary">Filter</button>
             </form>
         </div>
     </div>
@@ -49,9 +49,9 @@
                 </div>
                 <div class="card-footer">
                     {% if selected_theater %}
-                        <a href="{% url 'movie_detail' movie.id %}?theater={{ selected_theater.id }}" class="btn btn-outline-primary w-100">View Details</a>
+                        <a href="{% url 'movie_detail' movie.id %}?theater={{ selected_theater.id }}" class="btn btn-outline-secondary w-100">View Details</a>
                     {% else %}
-                        <a href="{% url 'movie_detail' movie.id %}" class="btn btn-outline-primary w-100">View Details</a>
+                        <a href="{% url 'movie_detail' movie.id %}" class="btn btn-outline-secondary w-100">View Details</a>
                     {% endif %}
                 </div>
             </div>

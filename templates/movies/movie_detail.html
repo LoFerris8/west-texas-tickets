@@ -17,7 +17,7 @@
         
         <div class="mb-3">
             <span class="badge bg-primary">{{ movie.genre }}</span>
-            <span class="badge bg-secondary">{{ movie.duration }} min</span>
+            <span class="badge bg-primary">{{ movie.duration }} min</span>
             {% if avg_rating %}
             <div class="mt-2">
                 <div class="stars">
@@ -121,7 +121,7 @@
                                 ${{ showtime.price }}
                             </div>
                             <div class="col-md-2">
-                                <a href="{% url 'purchase_ticket' showtime.id %}" class="btn btn-primary btn-sm">Buy Tickets</a>
+                                <a href="{% url 'purchase_ticket' showtime.id %}" class="btn btn-secondary btn-sm">Buy Tickets</a>
                             </div>
                         </div>
                     </div>
@@ -139,7 +139,7 @@
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3>Reviews</h3>
-        <a href="{% url 'add_review' movie.id %}" class="btn btn-primary btn-sm">Add Your Review</a>
+        <a href="{% url 'add_review' movie.id %}" class="btn btn-secondary btn-sm">Add Your Review</a>
     </div>
     <div class="card-body">
         {% if reviews %}

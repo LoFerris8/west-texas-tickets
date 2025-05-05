@@ -4,6 +4,39 @@ body {
     color: #333;
 }
 
+/* Navbar hover effect */
+.navbar .nav-link:hover {
+    color: #dc3545 !important; 
+}
+
+.navbar .navbar-brand:hover {
+    color: #dc3545 !important;
+}
+
+.btn-outline-light:hover {
+    background-color: #dc3545 !important; 
+    border-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+.btn-outline-dark:hover {
+    background-color: #dc3545 !important; 
+    border-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+.btn-primary:hover {
+    background-color: #dc3545 !important; 
+    border-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+.btn-outline-primary w-100:hover {
+    background-color: #dc3545 !important; 
+    border-color: #dc3545 !important;
+    color: #fff !important;
+}
+
 /* Hero section */
 .hero-section {
     background-color: #f8f9fa;
@@ -56,6 +89,39 @@ body {
     margin-bottom: 0.5rem;
 }
 
+/* Style the select box on focus with a red border and shadow */
+.form-select:focus,
+.form-select option:checked {
+    border-color: #dc3545 !important;  
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;  
+}
+
+.form-select option:hover {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+/* Hover effect for "View Details" and "View All" buttons */
+.btn-outline-primary:hover,
+.btn-outline-secondary:hover,
+.btn-secondary,
+.btn .btn-outline-secondary:hover {
+    color: #fff !important;        
+    background-color: #dc3545 !important;  
+    border-color: #dc3545 !important;     
+}
+
+/* Hover effect for footer links */
+footer a:hover {
+    color: #dc3545 !important; 
+}
+
+/* Ensure links are white by default */
+footer a {
+    color: white;
+}
+
+
 /* Print styling */
 @media print {
     nav, footer, .btn, .alert {
@@ -72,3 +138,43 @@ body {
         color: #000 !important;
     }
 }
+
+/* Emphasize call-to-action buttons */
+.btn-danger, .btn-outline-danger {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 20px;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-danger:hover,
+.btn-outline-danger:hover {
+    background-color: #c82333 !important;
+    border-color: #bd2130 !important;
+    color: #fff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+}
+
+
+.btn-danger:hover {
+    animation: pulse 0.5s;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+
+
+@keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(10px);}
+    100% { opacity: 1; transform: translateY(0);}
+    }
+
+.hero-section {
+        animation: fadeInUp 0.6s ease-in-out;
+    }
+

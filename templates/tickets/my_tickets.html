@@ -36,7 +36,7 @@
                 </div>
             </div>
             <div class="card-footer">
-                <a href="{% url 'ticket_detail' ticket.id %}" class="btn btn-primary">View Ticket</a>
+                <a href="{% url 'ticket_detail' ticket.id %}" class="btn btn-secondary">View Ticket</a>
             </div>
         </div>
     </div>
@@ -45,7 +45,7 @@
 {% else %}
 <div class="alert alert-info">
     <p>You haven't purchased any tickets yet.</p>
-    <a href="{% url 'movie_list' %}" class="btn btn-primary mt-2">Browse Movies</a>
+    <a href="{% url 'movie_list' %}" class="btn btn-secondary mt-2">Browse Movies</a>
 </div>
 {% endif %}
 {% endblock %}

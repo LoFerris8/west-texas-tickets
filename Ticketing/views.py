@@ -364,7 +364,12 @@ def purchase_ticket(request, showtime_id):
 
 @login_required
 def ticket_detail(request, ticket_id):
-    ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
+    if request.user.is_staff:
+        # Admins can view any ticket
+        ticket = get_object_or_404(Ticket, id=ticket_id)
+    else:
+        # Regular users can only view their own tickets
+        ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
     return render(request, 'tickets/ticket_detail.html', {'ticket': ticket})
 
 @login_required

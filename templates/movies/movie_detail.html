@@ -181,27 +181,30 @@
             {% for showtime in showtimes %}
             {
                 id: "{{ showtime.id }}",
+                theater: "{{ showtime.theater.id }}",
                 date: "{{ showtime.datetime|date:'Y-m-d' }}",
-                time: "{{ showtime.datetime|time:'g:i A' }}",
+                time: "{{ showtime.datetime|time:'g:i A' }}"
             },
             {% endfor %}
         ];
 
         function updateTimesForSelectedDate() {
             const selectedDate = dateSelect.value;
+            const selectedTheater = theaterSelect.value;
             timeSelect.innerHTML = '<option value="">All Times</option>';
 
             if (!selectedDate) {
                 return;
             }
 
-            const filteredTimes = showtimesData.filter(s => s.date === selectedDate);
+            const filteredTimes = showtimesData.filter(s =>
+                s.date === selectedDate && (!selectedTheater || s.theater === selectedTheater)
+            );
 
-            const uniqueTimes = new Set(); 
+            const uniqueTimes = new Set();
             filteredTimes.forEach(showtime => {
-                if (!uniqueTimes.has(showtime.time)) { 
+                if (!uniqueTimes.has(showtime.time)) {
                     uniqueTimes.add(showtime.time);
-                    
                     const option = document.createElement('option');
                     option.value = showtime.time;
                     option.textContent = showtime.time;

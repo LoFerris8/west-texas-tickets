@@ -359,6 +359,7 @@ class TicketAdminForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['barcode'].required = False
         # Add bootstrap classes
         for field_name, field in self.fields.items():
             if field_name != 'is_used':  # Skip checkbox
